@@ -1,0 +1,64 @@
+	#include "os.h"
+
+	// 声明本地以下符号是全局的，在其它源文件中可以访问
+	.global _start
+
+	// 指定以下的代码生成16位的机器指令，这样才能在启动时的实模式下运行
+  	.code16
+
+	// 以下是代码区
+ 	.text
+_start: 
+	// 将 cs 置为 0
+	jmp $0, $offset
+offset:
+
+	mov $0, %ax
+	mov %ax, %ds
+	mov %ax, %ss
+	mov %ax, %es
+	mov %ax, %fs
+	mov %ax, %gs
+
+	// TODO: 不理解, 为什么 要把 _start 存到 esp(32位) 寄存器中
+	mov $_start, %esp
+	
+read_self_all:
+	mov $_start_32, %bx // 读取到内存的地址
+	mov $0x2, %cx  	 	// 读取扇区的开始位置
+	mov $0x240, %ax	 	// 读取的大小为 0x240(576) - 0x200(512) = 0x40(64) 个 扇区
+	mov $0x80, %dx	 	// 表示 计算器上的 第一块 磁盘 (对于 qemu)
+	int $0x13		 	// 通过 INT 13 x86的软中断 跳转到 BIOS中断提供的 BIOS代码 的 读取 磁盘的 函数位置
+
+	jc read_self_all	// 判断是否成功, 失败重新调用 BIOS提供的读取磁盘的代码
+
+	cli 				// 关中断
+	lgdt gdt_desc 	// 通过 lgdt 指令 将 os.c 中 定义的 gdt_table 的 地址读取进来
+	mov $1, %eax		// CR0 是 32位, 所以 给到 exa
+	lmsw %ax			// 会将 CR0 寄存器 中 的 PE(最低位) 置为 1, 开启 保护模式
+	jmp $KERNEL_CODE_SEG, $_start_32	// 原来 为 16位 实模式, 要进入 保护模式, 需要 做一些 跳转 工作(会 清除 一些 流水线 等)
+
+	// 510处  最后 两位 放 0xAA 与 0x55
+	.org 0x1FE     
+	.byte 0x55, 0xAA
+
+	.code32 	// 后面 跟 32 位 的指令
+	.text		// 恢复 为 之前 状态
+
+_start_32:
+	// .fill 64*1024, 1, 0x35  // 填充 64KB 数据, 每个为 1Byte, 数据为 0x35
+	
+	// 将 寄存器 中的 值 赋上 对应 的 索引值
+	mov $KERNEL_DATA_SEG, %ax
+	mov %ax, %ds
+	mov %ax, %ss
+	mov %ax, %es
+	mov %ax, %fs
+	mov %ax, %gs
+	mov $_start, %esp
+
+	jmp .
+
+gdt_desc:
+	.word (256*8) - 1  	 // 界限, gdt表项 定义了 256 个, 每个为 8 字节(uint_8), 因为 界限 不是大小, 从 0 开始, 所以 要 减去 1
+	.long gdt_table		 // 起始地址, gdt_table 的 地址

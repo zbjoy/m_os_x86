@@ -1,0 +1,147 @@
+
+os.elf:     file format elf32-i386
+os.elf
+architecture: i386, flags 0x00000112:
+EXEC_P, HAS_SYMS, D_PAGED
+start address 0x00007c00
+
+Program Header:
+    LOAD off    0x00000000 vaddr 0x00007000 paddr 0x00007000 align 2**12
+         filesz 0x00000e1b memsz 0x00000e1b flags r-x
+    LOAD off    0x00001000 vaddr 0x00008000 paddr 0x00008000 align 2**12
+         filesz 0x00000800 memsz 0x00000800 flags rw-
+
+Sections:
+Idx Name          Size      VMA       LMA       File off  Algn
+  0 .text         0000021b  00007c00  00007c00  00000c00  2**0
+                  CONTENTS, ALLOC, LOAD, READONLY, CODE
+  1 .data         00000800  00008000  00008000  00001000  2**3
+                  CONTENTS, ALLOC, LOAD, DATA
+  2 .comment      00000011  00000000  00000000  00001800  2**0
+                  CONTENTS, READONLY
+  3 .debug_aranges 00000038  00000000  00000000  00001818  2**3
+                  CONTENTS, READONLY, DEBUGGING
+  4 .debug_info   000000f4  00000000  00000000  00001850  2**0
+                  CONTENTS, READONLY, DEBUGGING
+  5 .debug_abbrev 0000007e  00000000  00000000  00001944  2**0
+                  CONTENTS, READONLY, DEBUGGING
+  6 .debug_line   00000089  00000000  00000000  000019c2  2**0
+                  CONTENTS, READONLY, DEBUGGING
+  7 .debug_str    000000e1  00000000  00000000  00001a4b  2**0
+                  CONTENTS, READONLY, DEBUGGING
+SYMBOL TABLE:
+00007c00 l    d  .text	00000000 .text
+00008000 l    d  .data	00000000 .data
+00000000 l    d  .comment	00000000 .comment
+00000000 l    d  .debug_aranges	00000000 .debug_aranges
+00000000 l    d  .debug_info	00000000 .debug_info
+00000000 l    d  .debug_abbrev	00000000 .debug_abbrev
+00000000 l    d  .debug_line	00000000 .debug_line
+00000000 l    d  .debug_str	00000000 .debug_str
+00000000 l    df *ABS*	00000000 start.o
+00007c05 l       .text	00000000 offset
+00007c18 l       .text	00000000 read_self_all
+00007e00 l       .text	00000000 _start_32
+00007e15 l       .text	00000000 gdt_desc
+00000000 l    df *ABS*	00000000 os.c
+00008000 g     O .data	00000800 gdt_table
+00007c00 g       .text	00000000 _start
+00008800 g       .data	00000000 __bss_start
+00008800 g       .data	00000000 _edata
+00008800 g       .data	00000000 _end
+
+
+
+Disassembly of section .text:
+
+00007c00 <_start>:
+
+	// 以下是代码区
+ 	.text
+_start: 
+	// 将 cs 置为 0
+	jmp $0, $offset
+    7c00:	ea                   	.byte 0xea
+    7c01:	05                   	.byte 0x5
+    7c02:	7c 00                	jl     7c04 <_start+0x4>
+	...
+
+00007c05 <offset>:
+offset:
+
+	mov $0, %ax
+    7c05:	b8 00 00 8e d8       	mov    $0xd88e0000,%eax
+	mov %ax, %ds
+	mov %ax, %ss
+    7c0a:	8e d0                	mov    %eax,%ss
+	mov %ax, %es
+    7c0c:	8e c0                	mov    %eax,%es
+	mov %ax, %fs
+    7c0e:	8e e0                	mov    %eax,%fs
+	mov %ax, %gs
+    7c10:	8e e8                	mov    %eax,%gs
+
+	// TODO: 不理解, 为什么 要把 _start 存到 esp(32位) 寄存器中
+	mov $_start, %esp
+    7c12:	66 bc 00 7c          	mov    $0x7c00,%sp
+	...
+
+00007c18 <read_self_all>:
+	
+read_self_all:
+	mov $_start_32, %bx // 读取到内存的地址
+    7c18:	bb 00 7e b9 02       	mov    $0x2b97e00,%ebx
+	mov $0x2, %cx  	 	// 读取扇区的开始位置
+    7c1d:	00 b8 40 02 ba 80    	add    %bh,-0x7f45fdc0(%eax)
+	mov $0x240, %ax	 	// 读取的大小为 0x240(576) - 0x200(512) = 0x40(64) 个 扇区
+	mov $0x80, %dx	 	// 表示 计算器上的 第一块 磁盘 (对于 qemu)
+    7c23:	00 cd                	add    %cl,%ch
+	int $0x13		 	// 通过 INT 13 x86的软中断 跳转到 BIOS中断提供的 BIOS代码 的 读取 磁盘的 函数位置
+    7c25:	13 72 f0             	adc    -0x10(%edx),%esi
+
+	jc read_self_all	// 判断是否成功, 失败重新调用 BIOS提供的读取磁盘的代码
+
+	cli 				// 关中断
+    7c28:	fa                   	cli    
+	lgdt gdt_desc 	// 通过 lgdt 指令 将 os.c 中 定义的 gdt_table 的 地址读取进来
+    7c29:	0f 01 16             	lgdtl  (%esi)
+    7c2c:	15 7e 66 b8 01       	adc    $0x1b8667e,%eax
+	mov $1, %eax		// CR0 是 32位, 所以 给到 exa
+    7c31:	00 00                	add    %al,(%eax)
+    7c33:	00 0f                	add    %cl,(%edi)
+	lmsw %ax			// 会将 CR0 寄存器 中 的 PE(最低位) 置为 1, 开启 保护模式
+    7c35:	01 f0                	add    %esi,%eax
+	jmp $KERNEL_CODE_SEG, $_start_32	// 原来 为 16位 实模式, 要进入 保护模式, 需要 做一些 跳转 工作(会 清除 一些 流水线 等)
+    7c37:	ea 00 7e 08 00 00 00 	ljmp   $0x0,$0x87e00
+	...
+    7dfe:	55                   	push   %ebp
+    7dff:	aa                   	stos   %al,%es:(%edi)
+
+00007e00 <_start_32>:
+
+_start_32:
+	// .fill 64*1024, 1, 0x35  // 填充 64KB 数据, 每个为 1Byte, 数据为 0x35
+	
+	// 将 寄存器 中的 值 赋上 对应 的 索引值
+	mov $KERNEL_DATA_SEG, %ax
+    7e00:	66 b8 10 00          	mov    $0x10,%ax
+	mov %ax, %ds
+    7e04:	8e d8                	mov    %eax,%ds
+	mov %ax, %ss
+    7e06:	8e d0                	mov    %eax,%ss
+	mov %ax, %es
+    7e08:	8e c0                	mov    %eax,%es
+	mov %ax, %fs
+    7e0a:	8e e0                	mov    %eax,%fs
+	mov %ax, %gs
+    7e0c:	8e e8                	mov    %eax,%gs
+	mov $_start, %esp
+    7e0e:	bc 00 7c 00 00       	mov    $0x7c00,%esp
+
+	jmp .
+    7e13:	eb fe                	jmp    7e13 <_start_32+0x13>
+
+00007e15 <gdt_desc>:
+    7e15:	ff 07                	incl   (%edi)
+    7e17:	00                   	.byte 0x0
+    7e18:	80 00 00             	addb   $0x0,(%eax)
