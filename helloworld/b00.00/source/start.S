@@ -1,7 +1,7 @@
 	#include "os.h"
 
 	// 声明本地以下符号是全局的，在其它源文件中可以访问
-	.global _start
+	.global _start, timer_int
 
 	.extern os_init
 
@@ -39,6 +39,7 @@ read_self_all:
 
 	cli 				// 关中断
 	lgdt gdt_desc 		// 通过 lgdt 指令 将 os.c 中 定义的 gdt_table 的 地址读取进来
+	lidt idt_desc		// 通过 lidt 指令 将 os.c 中 定义的 idt_table 的 地址读取进来
 	mov $1, %eax		// CR0 是 32位, 所以 给到 exa
 	lmsw %ax			// 会将 CR0 寄存器 中 的 PE(最低位) 置为 1, 开启 保护模式
 	jmp $KERNEL_CODE_SEG, $_start_32	// 原来 为 16位 实模式, 要进入 保护模式, 需要 做一些 跳转 工作(会 清除 一些 流水线 等)
@@ -78,8 +79,25 @@ _start_32:
 	orl $(1 << 31), %eax
 	mov %eax, %cr0
 
+	sti // 打开中断
 	jmp .
+
+timer_int:
+	push %ds // 保存 ds 寄存器 中的 值
+	pusha	 // 保存 ax, bx, cx, dx, ... 等 寄存器的 值
+
+	mov $0x20, %al
+	outb %al, $0x20
+
+	popa  	 // 恢复 ax, bx, cx, dx, ... 等 寄存器的 值
+	pop %ds  // 恢复 ds 寄存器 中的 值
+
+	iret // 结束中断, 重新执行 被中断的 指令
 
 gdt_desc:
 	.word (256*8) - 1  	 // 界限, gdt表项 定义了 256 个, 每个为 8 字节(uint_8), 因为 界限 不是大小, 从 0 开始, 所以 要 减去 1
 	.long gdt_table		 // 起始地址, gdt_table 的 地址
+
+idt_desc:
+	.word (256*8) - 1	 
+	.long idt_table		 // idt_table 的 地址
