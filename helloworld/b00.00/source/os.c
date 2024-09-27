@@ -22,6 +22,8 @@ uint32_t pg_dir[1024] __attribute__((aligned(4096))) = {
     [0] = (0) | PDE_P | PDE_W | PDE_U | PDE_PS,
 };
 
+uint32_t task0_dpl3_stack[1024];
+
 struct 
 {
     uint16_t offset_l, selector, attr, offset_h;
@@ -34,6 +36,9 @@ struct
     // 设置 为 基地址 为 0x0000, 范围为 4G, 相当于 16位 实模式下 段寄存器 的 平坦模型
     [KERNEL_CODE_SEG / 8] = {0xFFFF, 0x0000, 0x9A00, 0x00CF}, 
     [KERNEL_DATA_SEG / 8] = {0xFFFF, 0x0000, 0x9200, 0x00CF},
+
+    [APP_CODE_SEG / 8] = {0xFFFF, 0x0000, 0xFA00, 0x00CF},  // 应用代码段, 设置 DPL 为 3, 即 内核态 无法访问
+    [APP_DATA_SEG / 8] = {0xFFFF, 0x0000, 0xF300, 0x00CF},  // 应用数据段, 设置 DPL 为 3, 即 内核态 无法访问
 };
 
 void outb(uint8_t data, uint16_t port)
@@ -42,6 +47,7 @@ void outb(uint8_t data, uint16_t port)
 }
 
 void timer_int(void);
+
 void os_init(void)
 {
     // 初始化 8259 与 8253  定时器

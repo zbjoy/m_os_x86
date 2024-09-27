@@ -79,8 +79,18 @@ _start_32:
 	orl $(1 << 31), %eax
 	mov %eax, %cr0
 
-	sti // 打开中断
-	jmp .
+	// sti // 打开中断
+	
+	// jmp .
+
+	push $APP_DATA_SEG 	 				// 保存 APP_DATA_SEG 到栈中 (放入 ss 寄存器)
+	// push $0		   					// 给 一定 的 栈空间
+	push $task0_dpl3_stack + 1024 * 4  	// 给到 栈的 地址 (给 数组 的 末尾) (给到 ESP 寄存器)
+	push $0 // $0x202							// 给到 EFLAGS 寄存器, 给相应位 置1 打开了 中断(0x202)
+	push $APP_CODE_SEG 					// 给到 CS 寄存器
+	push $task_0_entry 					// 给到 EIP 寄存器	
+	iret 			   					// 结束中断, 重新执行 被中断的 指令
+
 
 timer_int:
 	push %ds // 保存 ds 寄存器 中的 值
@@ -93,6 +103,15 @@ timer_int:
 	pop %ds  // 恢复 ds 寄存器 中的 值
 
 	iret // 结束中断, 重新执行 被中断的 指令
+
+// 任务 0
+task_0_entry:
+	mov %ss, %ax // 保存 ss 寄存器 中的 值
+	mov %ax, %ds // 将 ss 寄存器 中的 值 赋给 ds 寄存器
+	mov %ax, %es // 将 ss 寄存器 中的 值 赋给 es 寄存器
+	mov %ax, %fs // 将 ss 寄存器 中的 值 赋给 fs 寄存器
+	mov %ax, %gs // 将 ss 寄存器 中的 值 赋给 gs 寄存器
+	jmp .
 
 gdt_desc:
 	.word (256*8) - 1  	 // 界限, gdt表项 定义了 256 个, 每个为 8 字节(uint_8), 因为 界限 不是大小, 从 0 开始, 所以 要 减去 1
