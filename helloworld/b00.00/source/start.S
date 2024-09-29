@@ -1,7 +1,7 @@
 	#include "os.h"
 
 	// 声明本地以下符号是全局的，在其它源文件中可以访问
-	.global _start, timer_int
+	.global _start, timer_int, syscall_handler
 
 	.extern os_init
 
@@ -83,26 +83,46 @@ _start_32:
 	
 	// jmp .
 
+	mov $TASK0_TSS_SEG, %ax
+	ltr %ax								// 告诉 CPU 当前运行的 是 TASK0
+
 	push $APP_DATA_SEG 	 				// 保存 APP_DATA_SEG 到栈中 (放入 ss 寄存器)
 	// push $0		   					// 给 一定 的 栈空间
 	push $task0_dpl3_stack + 1024 * 4  	// 给到 栈的 地址 (给 数组 的 末尾) (给到 ESP 寄存器)
-	push $0 // $0x202							// 给到 EFLAGS 寄存器, 给相应位 置1 打开了 中断(0x202)
+	// push $0 // $0x202							// 给到 EFLAGS 寄存器, 给相应位 置1 打开了 中断(0x202)
+	push $0x202							// 打开 中断
 	push $APP_CODE_SEG 					// 给到 CS 寄存器
 	push $task_0_entry 					// 给到 EIP 寄存器	
 	iret 			   					// 结束中断, 重新执行 被中断的 指令
 
 
-timer_int:
-	push %ds // 保存 ds 寄存器 中的 值
-	pusha	 // 保存 ax, bx, cx, dx, ... 等 寄存器的 值
+syscall_handler:
+	// 保存 寄存器 的 值
+	push %ds
+	pusha
 
-	mov $0x20, %al
-	outb %al, $0x20
+	// 将 ds 寄存器 中的 值 切换为 内核数据段
+	mov $KERNEL_DATA_SEG, %ax
+	mov %ax, %ds
 
-	popa  	 // 恢复 ax, bx, cx, dx, ... 等 寄存器的 值
-	pop %ds  // 恢复 ds 寄存器 中的 值
+	// 将 对应 参数的 值 压入 栈中
+	// push color
+	// push str
+	// push func
 
-	iret // 结束中断, 重新执行 被中断的 指令
+	// ================= DEBUG START ====================
+
+	push $1
+	push $2
+	push $3
+
+	// ================= DEBUG END   ====================
+	call do_syscall
+
+	popa
+	pop %ds
+
+	ret
 
 // 任务 0
 task_0_entry:
@@ -111,7 +131,25 @@ task_0_entry:
 	mov %ax, %es // 将 ss 寄存器 中的 值 赋给 es 寄存器
 	mov %ax, %fs // 将 ss 寄存器 中的 值 赋给 fs 寄存器
 	mov %ax, %gs // 将 ss 寄存器 中的 值 赋给 gs 寄存器
-	jmp .
+	// jmp .
+	jmp task_0	 // 跳转到 c语言 的 对应函数
+
+timer_int:
+	push %ds // 保存 ds 寄存器 中的 值
+	pusha	 // 保存 ax, bx, cx, dx, ... 等 寄存器的 值
+
+	mov $0x20, %al
+	outb %al, $0x20
+
+	mov $KERNEL_DATA_SEG, %ax
+	mov %ax, %ds
+
+	call task_sched	// 进行 进程间切换(调用对应的 C代码)
+
+	popa  	 // 恢复 ax, bx, cx, dx, ... 等 寄存器的 值
+	pop %ds  // 恢复 ds 寄存器 中的 值
+
+	iret // 结束中断, 重新执行 被中断的 指令
 
 gdt_desc:
 	.word (256*8) - 1  	 // 界限, gdt表项 定义了 256 个, 每个为 8 字节(uint_8), 因为 界限 不是大小, 从 0 开始, 所以 要 减去 1

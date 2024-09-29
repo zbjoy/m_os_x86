@@ -4,6 +4,50 @@ typedef unsigned char uint8_t;
 typedef unsigned short uint16_t;
 typedef unsigned int uint32_t;
 
+void do_syscall(int func, char* str, char color)
+{
+    static int row = 0;
+
+    if (func == 2)
+    {
+        unsigned short* dest = (unsigned short*)0xB800 + 80 * row;
+        while (*str)
+        {
+            *dest++ = *str++ | (color << 8);
+        }
+        row = (row >= 25) ? 0 : row + 1;
+    }
+}
+
+void sys_show(char* str, char color)
+{
+    uint32_t addr[] = {0, SYSCALL_SEG};
+    // 将 对应的 参数压入栈中, 并调用 系统调用
+    __asm__ __volatile__("push %[color]; push %[str]; push %[id]; lcalll *(%[a])"::[a]"r"(addr), [color]"m"(color), [str]"m"(str), [id]"r"(2));
+}
+
+void task_0(void)
+{
+    char* str = "task a: 1234";
+    uint8_t color = 0;
+
+    for (;;)
+    {
+        sys_show(str, color++);
+    }
+}
+
+void task_1(void)
+{
+    char* str = "task b: 5678";
+    uint8_t color = 0xFF;
+
+    for (;;)
+    {
+        sys_show(str, color--);
+    }
+}
+
 #define PDE_P       (1 << 0) // 存在 分页机制
 #define PDE_W       (1 << 1) // 可写位置一
 #define PDE_U       (1 << 2) // 权限操作, 暂时置为一
@@ -22,7 +66,25 @@ uint32_t pg_dir[1024] __attribute__((aligned(4096))) = {
     [0] = (0) | PDE_P | PDE_W | PDE_U | PDE_PS,
 };
 
-uint32_t task0_dpl3_stack[1024];
+uint32_t task0_dpl0_stack[1024], task0_dpl3_stack[1024], task1_dpl0_stack[1024], task1_dpl3_stack[1024];
+
+uint32_t task0_tss[] = {
+    // prelink, esp0, ss0, esp1, ss1, esp2, ss2
+    0,  (uint32_t)task0_dpl0_stack + 4*1024, KERNEL_DATA_SEG , /* 后边不用使用 */ 0x0, 0x0, 0x0, 0x0,
+    // cr3, eip, eflags, eax, ecx, edx, ebx, esp, ebp, esi, edi,
+    (uint32_t)pg_dir,  (uint32_t)task_0/*入口地址*/, 0x202, 0xa, 0xc, 0xd, 0xb, (uint32_t)task0_dpl3_stack + 4*1024/* 栈 */, 0x1, 0x2, 0x3,
+    // es, cs, ss, ds, fs, gs, ldt, iomap
+    APP_DATA_SEG, APP_CODE_SEG, APP_DATA_SEG, APP_DATA_SEG, APP_DATA_SEG, APP_DATA_SEG, 0x0, 0x0,
+};
+
+uint32_t task1_tss[] = {
+    // prelink, esp0, ss0, esp1, ss1, esp2, ss2
+    0,  (uint32_t)task1_dpl0_stack + 4*1024, KERNEL_DATA_SEG , /* 后边不用使用 */ 0x0, 0x0, 0x0, 0x0,
+    // cr3, eip, eflags, eax, ecx, edx, ebx, esp, ebp, esi, edi,
+    (uint32_t)pg_dir,  (uint32_t)task_1/*入口地址*/, 0x202, 0xa, 0xc, 0xd, 0xb, (uint32_t)task1_dpl3_stack + 4*1024/* 栈 */, 0x1, 0x2, 0x3,
+    // es, cs, ss, ds, fs, gs, ldt, iomap
+    APP_DATA_SEG, APP_CODE_SEG, APP_DATA_SEG, APP_DATA_SEG, APP_DATA_SEG, APP_DATA_SEG, 0x0, 0x0,
+};
 
 struct 
 {
@@ -39,6 +101,11 @@ struct
 
     [APP_CODE_SEG / 8] = {0xFFFF, 0x0000, 0xFA00, 0x00CF},  // 应用代码段, 设置 DPL 为 3, 即 内核态 无法访问
     [APP_DATA_SEG / 8] = {0xFFFF, 0x0000, 0xF300, 0x00CF},  // 应用数据段, 设置 DPL 为 3, 即 内核态 无法访问
+
+    [TASK0_TSS_SEG / 8] = {0x68, 0, 0xE900, 0x00},
+    [TASK1_TSS_SEG / 8] = {0x68, 0, 0xE900, 0x00},
+
+    [SYSCALL_SEG / 8] = {0x0000, KERNEL_CODE_SEG, 0xEC03, 0x0000},
 };
 
 void outb(uint8_t data, uint16_t port)
@@ -46,7 +113,21 @@ void outb(uint8_t data, uint16_t port)
     __asm__ __volatile__ ("outb %[v], %[p]"::[p]"d"(port), [v]"a"(data));
 }
 
+
+// 进行 进程间 切换
+void task_sched(void) 
+{
+    static int task_tss = TASK0_TSS_SEG;
+
+    task_tss = (task_tss == TASK0_TSS_SEG) ? TASK1_TSS_SEG : TASK0_TSS_SEG;
+
+    // 通过 内联 汇编 实现 远跳转指令(ljmp指令)
+    uint32_t addr[] = {0, task_tss};
+    __asm__ __volatile__ ("ljmpl *(%[a])"::[a]"r"(addr));
+}
+
 void timer_int(void);
+void syscall_handler(void);
 
 void os_init(void)
 {
@@ -62,7 +143,7 @@ void os_init(void)
     outb(0xFE, 0x21);
     outb(0xFF, 0xA1);
 
-    int tmo = 1193180 / 100; // 计算 100ms 触发的 时间
+    int tmo = 1193180 / 10; // 计算 100ms 触发的 时间
     outb(0x36, 0x43);
     outb((uint8_t)tmo, 0x40);
     outb(tmo >> 8, 0x40);
@@ -72,6 +153,12 @@ void os_init(void)
     idt_table[0x20].offset_h = (uint32_t)timer_int >> 16;    // 高 16 位
     idt_table[0x20].selector = KERNEL_CODE_SEG;              // 设置 选择子 的 位置 为 代码段
     idt_table[0x20].attr = 0x8E00;                           // 设置 属性
+
+    gdt_table[TASK0_TSS_SEG / 8].base_l = (uint16_t)(uint32_t)task0_tss;
+    gdt_table[TASK1_TSS_SEG / 8].base_l = (uint16_t)(uint32_t)task1_tss;
+
+    // 补充 系统调用的 函数 起始地址
+    gdt_table[SYSCALL_SEG / 8].limit_l = (uint16_t)(uint32_t)syscall_handler;
 
     pg_dir[MAP_ADDR >> 22] = (uint32_t)page_table | PDE_P | PDE_W | PDE_U; // 将 MAP_ADDR 的 高 10 位 作为 页目录项 的 索引
     page_table[(MAP_ADDR >> 12) & 0x3FF] = (uint32_t)map_phy_buffer | PDE_P | PDE_W | PDE_U;
