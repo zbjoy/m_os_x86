@@ -6,24 +6,28 @@ typedef unsigned int uint32_t;
 
 void do_syscall(int func, char* str, char color)
 {
-    static int row = 0;
+    static int row = 1;
 
     if (func == 2)
     {
-        unsigned short* dest = (unsigned short*)0xB800 + 80 * row;
+        unsigned short* dest = (unsigned short*)0xB8000 + 80 * row;
         while (*str)
         {
             *dest++ = *str++ | (color << 8);
         }
         row = (row >= 25) ? 0 : row + 1;
+
+        for (int i = 0; i < 0xFFFFF; i++);
     }
 }
 
 void sys_show(char* str, char color)
 {
-    uint32_t addr[] = {0, SYSCALL_SEG};
+    // uint32_t addr[] = {0, SYSCALL_SEG};
+    const uint32_t addr[] = {0, SYSCALL_SEG};
+    // const unsigned long addr = {0, SYSCALL_SEG};
     // 将 对应的 参数压入栈中, 并调用 系统调用
-    __asm__ __volatile__("push %[color]; push %[str]; push %[id]; lcalll *(%[a])"::[a]"r"(addr), [color]"m"(color), [str]"m"(str), [id]"r"(2));
+    __asm__ __volatile__("push %[color];push %[str];push %[id];lcalll *(%[a])\n\n"::[color]"m"(color), [str]"m"(str), [id]"r"(2),[a]"r"(addr));
 }
 
 void task_0(void)
@@ -59,7 +63,8 @@ void task_1(void)
 uint8_t map_phy_buffer[4096] __attribute__((aligned(4096))) = { 0x36 };
 
 // 二级 页表
-static uint32_t page_table[1024] __attribute__((aligned(1024))) = { PDE_U };
+// static uint32_t page_table[1024] __attribute__((aligned(1024))) = { PDE_U };
+static uint32_t page_table[1024] __attribute__((aligned(4096))) = { PDE_U };
 
 // 设置 分页机制 的 页目录表
 uint32_t pg_dir[1024] __attribute__((aligned(4096))) = {
@@ -68,13 +73,23 @@ uint32_t pg_dir[1024] __attribute__((aligned(4096))) = {
 
 uint32_t task0_dpl0_stack[1024], task0_dpl3_stack[1024], task1_dpl0_stack[1024], task1_dpl3_stack[1024];
 
+struct {uint16_t limit_l, base_l, basehl_attr, base_limit;} task0_ldt_table[256] __attribute__((aligned(8))) = {
+    [TASK_CODE_SEG / 8] = {0xFFFF, 0x0000, 0xFA00, 0x00CF},
+    [TASK_DATA_SEG / 8] = {0xFFFF, 0x0000, 0xF300, 0x00CF},
+};
+
+struct {uint16_t limit_l, base_l, basehl_attr, base_limit;} task1_ldt_table[256] __attribute__((aligned(8))) = {
+    [TASK_CODE_SEG / 8] = {0xFFFF, 0x0000, 0xFA00, 0x00CF},
+    [TASK_DATA_SEG / 8] = {0xFFFF, 0x0000, 0xF300, 0x00CF},
+};
+
 uint32_t task0_tss[] = {
     // prelink, esp0, ss0, esp1, ss1, esp2, ss2
     0,  (uint32_t)task0_dpl0_stack + 4*1024, KERNEL_DATA_SEG , /* 后边不用使用 */ 0x0, 0x0, 0x0, 0x0,
     // cr3, eip, eflags, eax, ecx, edx, ebx, esp, ebp, esi, edi,
     (uint32_t)pg_dir,  (uint32_t)task_0/*入口地址*/, 0x202, 0xa, 0xc, 0xd, 0xb, (uint32_t)task0_dpl3_stack + 4*1024/* 栈 */, 0x1, 0x2, 0x3,
     // es, cs, ss, ds, fs, gs, ldt, iomap
-    APP_DATA_SEG, APP_CODE_SEG, APP_DATA_SEG, APP_DATA_SEG, APP_DATA_SEG, APP_DATA_SEG, 0x0, 0x0,
+    TASK_DATA_SEG, TASK_CODE_SEG, TASK_DATA_SEG, TASK_DATA_SEG, TASK_DATA_SEG, TASK_DATA_SEG, TASK0_LDT_SEG, 0x0,
 };
 
 uint32_t task1_tss[] = {
@@ -83,7 +98,7 @@ uint32_t task1_tss[] = {
     // cr3, eip, eflags, eax, ecx, edx, ebx, esp, ebp, esi, edi,
     (uint32_t)pg_dir,  (uint32_t)task_1/*入口地址*/, 0x202, 0xa, 0xc, 0xd, 0xb, (uint32_t)task1_dpl3_stack + 4*1024/* 栈 */, 0x1, 0x2, 0x3,
     // es, cs, ss, ds, fs, gs, ldt, iomap
-    APP_DATA_SEG, APP_CODE_SEG, APP_DATA_SEG, APP_DATA_SEG, APP_DATA_SEG, APP_DATA_SEG, 0x0, 0x0,
+    TASK_DATA_SEG, TASK_CODE_SEG, TASK_DATA_SEG, TASK_DATA_SEG, TASK_DATA_SEG, TASK_DATA_SEG, TASK1_LDT_SEG, 0x0,
 };
 
 struct 
@@ -102,10 +117,13 @@ struct
     [APP_CODE_SEG / 8] = {0xFFFF, 0x0000, 0xFA00, 0x00CF},  // 应用代码段, 设置 DPL 为 3, 即 内核态 无法访问
     [APP_DATA_SEG / 8] = {0xFFFF, 0x0000, 0xF300, 0x00CF},  // 应用数据段, 设置 DPL 为 3, 即 内核态 无法访问
 
-    [TASK0_TSS_SEG / 8] = {0x68, 0, 0xE900, 0x00},
-    [TASK1_TSS_SEG / 8] = {0x68, 0, 0xE900, 0x00},
+    [TASK0_TSS_SEG / 8] = {0x0068, 0, 0xE900, 0x0},
+    [TASK1_TSS_SEG / 8] = {0x0068, 0, 0xE900, 0x0},
 
     [SYSCALL_SEG / 8] = {0x0000, KERNEL_CODE_SEG, 0xEC03, 0x0000},
+
+    [TASK0_LDT_SEG / 8] = {sizeof(task0_ldt_table) - 1, 0x0, 0xE200, 0x00CF},
+    [TASK1_LDT_SEG / 8] = {sizeof(task1_ldt_table) - 1, 0x0, 0xE200, 0x00CF},
 };
 
 void outb(uint8_t data, uint16_t port)
@@ -159,6 +177,9 @@ void os_init(void)
 
     // 补充 系统调用的 函数 起始地址
     gdt_table[SYSCALL_SEG / 8].limit_l = (uint16_t)(uint32_t)syscall_handler;
+
+    gdt_table[TASK0_LDT_SEG / 8].base_l = (uint16_t)(uint32_t)task0_ldt_table;
+    gdt_table[TASK1_LDT_SEG / 8].base_l = (uint16_t)(uint32_t)task1_ldt_table;
 
     pg_dir[MAP_ADDR >> 22] = (uint32_t)page_table | PDE_P | PDE_W | PDE_U; // 将 MAP_ADDR 的 高 10 位 作为 页目录项 的 索引
     page_table[(MAP_ADDR >> 12) & 0x3FF] = (uint32_t)map_phy_buffer | PDE_P | PDE_W | PDE_U;

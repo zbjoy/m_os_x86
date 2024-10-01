@@ -12,4 +12,11 @@
 
 #define SYSCALL_SEG             ((7 * 8))       // 系统调用的索引
 
+#define TASK0_LDT_SEG           ((8 * 8))       // 任务代码段的索引
+#define TASK1_LDT_SEG           ((9 * 8))       // 任务数据段的索引
+
+#define TASK_CODE_SEG           ((0 * 8))
+#define TASK_DATA_SEG           ((1 * 8))
+
+
 #endif // OS_H

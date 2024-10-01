@@ -3,7 +3,7 @@
 	// 声明本地以下符号是全局的，在其它源文件中可以访问
 	.global _start, timer_int, syscall_handler
 
-	.extern os_init
+	.extern gdt_table, pg_dir, idt_table, task_sched, os_init
 
 	// 指定以下的代码生成16位的机器指令，这样才能在启动时的实模式下运行
   	.code16
@@ -31,9 +31,9 @@ read_self_all:
 	// 读取 剩余 代码 (os.c)
 	mov $_start_32, %bx // 读取到内存的地址, 相当于 0x7E00
 	mov $0x2, %cx  	 	// 读取扇区的开始位置
-	mov $0x240, %ax	 	// 读取的大小为 0x240(576) - 0x200(512) = 0x40(64) 个 扇区
+	mov $0x0240, %ax	 	// 读取的大小为 0x240(576) - 0x200(512) = 0x40(64) 个 扇区
 	mov $0x80, %dx	 	// 表示 计算器上的 第一块 磁盘 (对于 qemu)
-	int $0x13		 	// 通过 INT 13 x86的软中断 跳转到 BIOS中断提供的 BIOS代码 的 读取 磁盘的 函数位置
+	int $0x0013		 	// 通过 INT 13 x86的软中断 跳转到 BIOS中断提供的 BIOS代码 的 读取 磁盘的 函数位置
 
 	jc read_self_all	// 判断是否成功, 失败重新调用 BIOS提供的读取磁盘的代码
 
@@ -88,7 +88,8 @@ _start_32:
 
 	push $APP_DATA_SEG 	 				// 保存 APP_DATA_SEG 到栈中 (放入 ss 寄存器)
 	// push $0		   					// 给 一定 的 栈空间
-	push $task0_dpl3_stack + 1024 * 4  	// 给到 栈的 地址 (给 数组 的 末尾) (给到 ESP 寄存器)
+	// push $task0_dpl3_stack + 1024 * 4  	// 给到 栈的 地址 (给 数组 的 末尾) (给到 ESP 寄存器)
+	push $task0_dpl3_stack + 1024  	// 给到 栈的 地址 (给 数组 的 末尾) (给到 ESP 寄存器)
 	// push $0 // $0x202							// 给到 EFLAGS 寄存器, 给相应位 置1 打开了 中断(0x202)
 	push $0x202							// 打开 中断
 	push $APP_CODE_SEG 					// 给到 CS 寄存器
@@ -99,30 +100,38 @@ _start_32:
 syscall_handler:
 	// 保存 寄存器 的 值
 	push %ds
-	pusha
+	pusha	
 
 	// 将 ds 寄存器 中的 值 切换为 内核数据段
 	mov $KERNEL_DATA_SEG, %ax
 	mov %ax, %ds
 
+	mov %esp, %ebp
 	// 将 对应 参数的 值 压入 栈中
+	push 13*4(%ebp)
+	push 12*4(%ebp)
+	push 11*4(%ebp)
+
 	// push color
 	// push str
 	// push func
 
 	// ================= DEBUG START ====================
 
-	push $1
-	push $2
-	push $3
+	// push $1
+	// push $2
+	// push $3
 
 	// ================= DEBUG END   ====================
 	call do_syscall
 
+	add $(3 * 4), %esp // 弹出 3 个 参数
+
 	popa
 	pop %ds
 
-	ret
+	// ret
+	retf $(3 * 4)
 
 // 任务 0
 task_0_entry:
