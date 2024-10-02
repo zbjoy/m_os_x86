@@ -86,13 +86,16 @@ _start_32:
 	mov $TASK0_TSS_SEG, %ax
 	ltr %ax								// 告诉 CPU 当前运行的 是 TASK0
 
-	push $APP_DATA_SEG 	 				// 保存 APP_DATA_SEG 到栈中 (放入 ss 寄存器)
+	mov $TASK0_LDT_SEG, %ax
+	lldt %ax							// 告诉 CPU 当前的 任务 0 的 任务状态段 寄存器 是 TASK0_TSS_SEG
+
+	push $TASK_DATA_SEG 	 				// 保存 APP_DATA_SEG 到栈中 (放入 ss 寄存器)
 	// push $0		   					// 给 一定 的 栈空间
 	// push $task0_dpl3_stack + 1024 * 4  	// 给到 栈的 地址 (给 数组 的 末尾) (给到 ESP 寄存器)
 	push $task0_dpl3_stack + 1024  	// 给到 栈的 地址 (给 数组 的 末尾) (给到 ESP 寄存器)
 	// push $0 // $0x202							// 给到 EFLAGS 寄存器, 给相应位 置1 打开了 中断(0x202)
 	push $0x202							// 打开 中断
-	push $APP_CODE_SEG 					// 给到 CS 寄存器
+	push $TASK_CODE_SEG 					// 给到 CS 寄存器
 	push $task_0_entry 					// 给到 EIP 寄存器	
 	iret 			   					// 结束中断, 重新执行 被中断的 指令
 

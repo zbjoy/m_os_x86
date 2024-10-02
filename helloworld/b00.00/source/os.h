@@ -15,8 +15,8 @@
 #define TASK0_LDT_SEG           ((8 * 8))       // 任务代码段的索引
 #define TASK1_LDT_SEG           ((9 * 8))       // 任务数据段的索引
 
-#define TASK_CODE_SEG           ((0 * 8))
-#define TASK_DATA_SEG           ((1 * 8))
+#define TASK_CODE_SEG           ((0 * 8 | 0x4 | 3))
+#define TASK_DATA_SEG           ((1 * 8 | 0x4 | 3))
 
 
 #endif // OS_H
