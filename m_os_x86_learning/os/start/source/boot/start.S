@@ -1,20 +1,33 @@
-/**
- * 自己动手写操作系统
- *
- * 系统引导部分，启动时由硬件加载运行，然后完成对二级引导程序loader的加载
- * 该部分程序存储于磁盘的第1个扇区，在计算机启动时将会由BIOS加载到0x7c00处
- * 之后，将由BIOS跳转至0x7c00处开始运行
- * 
- * 作者：李述铜
- * 联系邮箱: 527676163@qq.com
- */
-	#include "boot.h"
+#include "boot.h"
 
   	// 16位代码，务必加上
   	.code16
  	.text
 	.global _start
 _start:
+	mov $0, %ax
+	mov %ax, %ds
+	mov %ax, %ss
+	mov %ax, %es
+	mov %ax, %fs
+	mov %ax, %gs
+
+	// 将程序加载到 栈顶
+	mov $_start, %esp	// esp 寄存器指向栈顶
+
+	mov $0xE, %ah
+	mov $'L', %al
+	INT $0x10	// 输出字符 'L'
+
+read_loader:
+	mov $0x02, %ah
+	mov $0x64, %al
+	mov $0x02, %cx
+	mov $0x80, %dx
+	mov $0x8000, %bx
+	INT $0x13	// 读取 loader.bin 到内存 0x8000
+	jc read_loader	// 读取失败，重试
+
 	jmp .
 	
 	// 引导结束段
