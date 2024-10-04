@@ -3,7 +3,7 @@
   	// 16位代码，务必加上
   	.code16
  	.text
-	.global _start
+	.global _start, boot_entry
 _start:
 	mov $0, %ax
 	mov %ax, %ds
@@ -27,6 +27,9 @@ read_loader:
 	mov $0x8000, %bx
 	INT $0x13	// 读取 loader.bin 到内存 0x8000
 	jc read_loader	// 读取失败，重试
+
+	// 跳转到 boot.c 中的 boot_entry() 函数
+	jmp boot_entry
 
 	jmp .
 	
