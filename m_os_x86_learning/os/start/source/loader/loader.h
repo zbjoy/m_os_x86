@@ -16,4 +16,6 @@ typedef struct SMAP_entry {
     uint32_t ACPI; // extended, bit0 = 1 时 表明此条目应当被忽略
 } __attribute__((packed)) SMAP_entry_t;
 
+extern boot_info_t boot_info;
+
 #endif /* LOADER_H */
