@@ -5,6 +5,7 @@
  	.text
 	.global _start, boot_entry
 _start:
+	// 清空段寄存器, cs 不用显式清空
 	mov $0, %ax
 	mov %ax, %ds
 	mov %ax, %ss

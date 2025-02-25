@@ -1,0 +1,56 @@
+#include "kernel/include/cpu/cpu.h"
+#include "kernel/include/os_cfg.h"
+#include "comm/cpu_instr.h"
+
+static segment_desc_t gdt_table[GDT_TABLE_SIZE];
+
+void segment_desc_set(int selector, uint32_t base, uint32_t limit, uint16_t attr)
+{
+    // 下面代码相当于: segment_desc_t* desc = gdt_table[selector >> 3]
+    segment_desc_t* desc = gdt_table + selector / sizeof(segment_desc_t); // 因为 gdt_table 是 8 字节对齐的，所以 selector >> 3 得到的偏移量是 32 字节对齐的
+
+    if (limit > 0xFFFFF) // 大于 20 位, 则将 G 标志 置为 1, 使 limit 单位为 4KB
+    {
+        // attr |= 0x8000;
+        attr |= SEG_G;
+        limit /= 0x1000;    // limit 除以 4KB
+    }
+
+    desc->limit15_0 = limit & 0xFFFF;
+    desc->base15_0 = base & 0xFFFF;
+    desc->base23_16 = (base >> 16) & 0xFF;
+    desc->base31_24 = (base >> 24) & 0xFF;
+    desc->attribute = attr | ((limit >> 16 & 0xF) << 8);
+}
+
+void gate_desc_set(gate_desc_t* desc, uint16_t selector, uint32_t offset, uint16_t attr)
+{
+    desc->offset15_0 = offset & 0xFFFF;
+    desc->offset31_16 = (offset >> 16) & 0xFFFF;
+    desc->selector = selector;
+    desc->attr = attr;
+}
+
+void init_gdt(void)
+{
+    // 清空 gdt 表
+    for (int i = 0; i < GDT_TABLE_SIZE; i++)
+    {
+        // 下面一句相当于 segment_desc_set(i * sizeof(segment_desc_t), 0, 0, 0);
+        segment_desc_set(i << 3, 0, 0, 0); // 左移 3 位是为了得到段描述符的偏移量, 一个 segment_desc_t 占 8 字节
+    }
+
+    // 重新加载 gdt 表 (普通平坦模型)
+    segment_desc_set(KERNEL_SELECTOR_CS, 0, 0xFFFFFFFF, 
+                    SEG_P_PRESENT | SEG_DPL0 | SEG_S_NORMAL | SEG_TYPE_CODE | SEG_TYPE_RW | SEG_D); 
+    segment_desc_set(KERNEL_SELECTOR_DS, 0, 0xFFFFFFFF, 
+                    SEG_P_PRESENT | SEG_DPL0 | SEG_S_NORMAL | SEG_TYPE_DATA | SEG_TYPE_RW | SEG_D); 
+    lgdt((uint32_t)gdt_table, sizeof(gdt_table));
+}
+
+void cpu_init(void)
+{
+    init_gdt();
+
+}
+

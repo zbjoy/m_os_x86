@@ -18,6 +18,7 @@ static void show_msg(const char* msg)
     }
 }
 
+// 探测内存
 static void detect_memory(void)
 {
     SMAP_entry_t  smap_entry;
@@ -58,10 +59,11 @@ static void detect_memory(void)
     show_msg("ok...\r\n");
 }
 
+// 这个 GDT 表太小, 并且可能被覆盖, 所以选择在 kernel(source/kernel/cpu/cpu.c) 中 做一个更大的表
 uint16_t gdt_table[][4] = {
     {0, 0, 0, 0}, 
-    {0xFFFF, 0x0000, 0x9A00, 0x00CF},
-    {0xFFFF, 0x0000, 0x9200, 0x00CF},
+    {0xFFFF, 0x0000, 0x9A00, 0x00CF}, // 代码段
+    {0xFFFF, 0x0000, 0x9200, 0x00CF}, // 数据段
 };
 
 // 保护模式入口
