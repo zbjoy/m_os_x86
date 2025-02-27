@@ -23,6 +23,7 @@ void init_main(void)
 
     log_printf("Kernel is running......\n");
     log_printf("Version: %s, %s\n", OS_VERSION, "diyx86");
+    log_printf("%d %d %x %c", 123, -123456, 0x12345, 'a');
 
     for (;;)
     {
