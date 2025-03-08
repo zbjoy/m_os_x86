@@ -5,15 +5,25 @@
 #include "kernel/include/dev/time.h"
 #include "kernel/include/tools/log.h"
 #include "kernel/include/os_cfg.h"
+#include "kernel/include/tools/klib.h"
 
 void kernel_init(boot_info_t *boot_info)
 {
+    // ASSERT(boot_info->ram_region_count != 0);
+
     cpu_init();
 
     log_init();
 
     irq_init();
     time_init();
+}
+ 
+void init_task_entry(void) {
+    int count = 0;
+    for (;;) {
+        log_printf("int task: %d", count++);
+    }
 }
 
 void init_main(void)
@@ -25,8 +35,9 @@ void init_main(void)
     log_printf("Version: %s, %s\n", OS_VERSION, "diyx86");
     log_printf("%d %d %x %c", 123, -123456, 0x12345, 'a');
 
+    int count = 0;
     for (;;)
     {
-
+        log_printf("int main: %d", count++);
     }
 }
