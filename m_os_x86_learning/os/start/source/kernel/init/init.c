@@ -20,6 +20,7 @@ void kernel_init(boot_info_t *boot_info)
     time_init();
 }
 
+static uint32_t init_task_stack[1024];
 static task_t init_task;
 static task_t first_task;
  
@@ -40,7 +41,7 @@ void init_main(void)
     log_printf("Version: %s, %s\n", OS_VERSION, "diyx86");
     log_printf("%d %d %x %c", 123, -123456, 0x12345, 'a');
 
-    task_init(&init_task, (uint32_t*)init_task_entry, 0);
+    task_init(&init_task, (uint32_t*)init_task_entry, (uint32_t)&init_task_stack[1024]); // x86下，esp是向下增长的，所以这里传入的是最后一个有效地址
     task_init(&first_task, 0, 0);
 
     int count = 0;
