@@ -43,6 +43,8 @@ typedef struct _tss_t {
 
 void segment_desc_set(int selector, uint32_t base, uint32_t limit, uint16_t attr);
 void gate_desc_set(gate_desc_t* desc, uint16_t selector, uint32_t offset, uint16_t attr);
+int gdt_alloc_desc();
+void switch_to_tss(uint32_t tss_sel);
 
 void cpu_init(void);
 
@@ -64,6 +66,7 @@ void cpu_init(void);
 
 #define SEG_TYPE_CODE (1 << 3)  // 代码段则 set 1
 #define SEG_TYPE_DATA (0 << 3)  // 数据段(可以给 变量或者栈 去使用)
+#define SEG_TYPE_TSS (9 << 0) // TSS 任务状态段
 
 #define SEG_TYPE_RW (1 << 1)    // 控制读写权限
 

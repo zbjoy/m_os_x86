@@ -7,6 +7,7 @@
 #include "kernel/include/os_cfg.h"
 #include "kernel/include/tools/klib.h"
 #include "kernel/include/core/task.h"
+#include "comm/cpu_instr.h"
 
 void kernel_init(boot_info_t *boot_info)
 {
@@ -20,14 +21,15 @@ void kernel_init(boot_info_t *boot_info)
     time_init();
 }
 
+static task_t first_task;
 static uint32_t init_task_stack[1024];
 static task_t init_task;
-static task_t first_task;
  
 void init_task_entry(void) {
     int count = 0;
     for (;;) {
-        log_printf("int task: %d", count++);
+        log_printf("init task: %d", count++);
+        task_switch_from_to(&init_task, &first_task);
     }
 }
 
@@ -41,12 +43,14 @@ void init_main(void)
     log_printf("Version: %s, %s\n", OS_VERSION, "diyx86");
     log_printf("%d %d %x %c", 123, -123456, 0x12345, 'a');
 
-    task_init(&init_task, (uint32_t*)init_task_entry, (uint32_t)&init_task_stack[1024]); // x86下，esp是向下增长的，所以这里传入的是最后一个有效地址
+    task_init(&init_task, (uint32_t)init_task_entry, (uint32_t)&init_task_stack[1024]); // x86下，esp是向下增长的，所以这里传入的是最后一个有效地址
     task_init(&first_task, 0, 0);
+    write_tr(first_task.tss_sel);
 
     int count = 0;
     for (;;)
     {
         log_printf("int main: %d", count++);
+        task_switch_from_to(&first_task, &init_task);
     }
 }

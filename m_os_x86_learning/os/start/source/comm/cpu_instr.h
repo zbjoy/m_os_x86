@@ -87,4 +87,8 @@ static inline void sti(void) // 开中断
     __asm__ __volatile__("sti");
 }
 
+static inline void write_tr(uint32_t tss_sel) {
+    __asm__ __volatile__("ltr %%ax"::"a"(tss_sel));
+}
+
 #endif
