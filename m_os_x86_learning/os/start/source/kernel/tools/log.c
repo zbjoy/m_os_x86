@@ -31,7 +31,7 @@ void log_printf(const char *fmt,...) {
         while ((inb(COM1_PORT + 5) & (1 << 6)) == 0); // 等待空闲 (检查串行接口是否在忙)
         outb(COM1_PORT, *p++);
     }
-    // outb(COM1_PORT, '\r'); // 输出回车符
+    outb(COM1_PORT, '\r'); // 输出回车符
     outb(COM1_PORT, '\n'); // 输出换行符
 }   
 

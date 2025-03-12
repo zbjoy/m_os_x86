@@ -7,12 +7,13 @@ static segment_desc_t gdt_table[GDT_TABLE_SIZE];
 void segment_desc_set(int selector, uint32_t base, uint32_t limit, uint16_t attr)
 {
     // 下面代码相当于: segment_desc_t* desc = gdt_table[selector >> 3]
-    segment_desc_t* desc = gdt_table + selector / sizeof(segment_desc_t); // 因为 gdt_table 是 8 字节对齐的，所以 selector >> 3 得到的偏移量是 32 字节对齐的
+    // segment_desc_t* desc = gdt_table + selector / sizeof(segment_desc_t); // 因为 gdt_table 是 8 字节对齐的，所以 selector >> 3 得到的偏移量是 32 字节对齐的
+    segment_desc_t* desc = gdt_table + (selector >> 3); // 因为 gdt_table 是 8 字节对齐的，所以 selector >> 3 得到的偏移量是 32 字节对齐的
 
     if (limit > 0xFFFFF) // 大于 20 位, 则将 G 标志 置为 1, 使 limit 单位为 4KB
     {
-        // attr |= 0x8000;
-        attr |= SEG_G;
+        attr |= 0x8000;
+        // attr |= SEG_G;
         limit /= 0x1000;    // limit 除以 4KB
     }
 
