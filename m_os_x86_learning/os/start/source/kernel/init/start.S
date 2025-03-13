@@ -93,3 +93,31 @@ exception_handler virtual_exception, 20, 0
 exception_handler control_exception, 21, 1
 
 exception_handler time, 0x20, 0
+
+    // simple_switch(&from, to)
+    .text
+    .global simple_switch
+simple_switch:
+    // 从参数中(在栈中保存)取出值
+    mov 4(%esp), %eax // 也可以放在 eax 中, from 的 值
+    mov 8(%esp), %edx // 也可以放在 edx 中, to 的 值
+
+
+    push %ebp
+    push %ebx
+    push %esi
+    push %edi
+    mov %esp, (%eax) // 保存当前栈指针到 from 栈中, 内存写
+
+    // 实现栈的切换
+    mov %edx, %esp
+
+
+    pop %edi
+    pop %esi
+    pop %ebx
+    pop %ebp
+
+    // ret 指令会从当前的栈指针中弹出返回地址, 并跳转到该地址, 而在 source/kernel/core/task.c 中的 task_init 函数中有设置 *(--pesp) = entry, 所以这里的 ret 指令会返回到 task_init 函数中, 并设置好新的栈, 然后调用 task_start 函数
+    ret // 对 栈 进行设置 使返回到 to 的函数中
+
