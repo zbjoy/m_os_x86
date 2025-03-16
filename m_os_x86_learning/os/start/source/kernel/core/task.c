@@ -31,23 +31,23 @@ static int tss_init(task_t* task, uint32_t entry, uint32_t esp) {
 int task_init(task_t *task, uint32_t entry, uint32_t esp) {
     ASSERT(task != (task_t*)0);
 
-    // tss_init(task, entry, esp);
-    uint32_t* pesp = (uint32_t*)esp;
-    if (pesp) {
-        // 设置的寄存器依据 source/kernel/init/start.S 中的设置
-        /**
-         *  pop %edi
-         *  pop %esi
-         *  pop %ebx
-         *  pop %ebp
-         */
-        *(--pesp) = entry; // EIP 设置成任务入口地址, 使在任务切换的时候可以返回到下一个要跳转的函数中去
-        *(--pesp) = 0; // EDI
-        *(--pesp) = 0; // ESI
-        *(--pesp) = 0; // EBX
-        *(--pesp) = 0; // EBP
-        task->stack = pesp; // 任务栈指针
-    }
+    tss_init(task, entry, esp);
+    // uint32_t* pesp = (uint32_t*)esp;
+    // if (pesp) {
+    //     // 设置的寄存器依据 source/kernel/init/start.S 中的设置
+    //     /**
+    //      *  pop %edi
+    //      *  pop %esi
+    //      *  pop %ebx
+    //      *  pop %ebp
+    //      */
+    //     *(--pesp) = entry; // EIP 设置成任务入口地址, 使在任务切换的时候可以返回到下一个要跳转的函数中去
+    //     *(--pesp) = 0; // EDI
+    //     *(--pesp) = 0; // ESI
+    //     *(--pesp) = 0; // EBX
+    //     *(--pesp) = 0; // EBP
+    //     task->stack = pesp; // 任务栈指针
+    // }
     return 0;
 }
 
@@ -55,7 +55,7 @@ int task_init(task_t *task, uint32_t entry, uint32_t esp) {
 void simple_switch(uint32_t** from, uint32_t* to);
 
 void task_switch_from_to(task_t* from, task_t* to) {
-    // switch_to_tss(to->tss_sel);
-    simple_switch(&from->stack, to->stack);
+    switch_to_tss(to->tss_sel);
+    // simple_switch(&from->stack, to->stack);
 }
 

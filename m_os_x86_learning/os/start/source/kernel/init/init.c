@@ -8,6 +8,7 @@
 #include "kernel/include/tools/klib.h"
 #include "kernel/include/core/task.h"
 #include "comm/cpu_instr.h"
+#include "kernel/include/tools/list.h"
 
 void kernel_init(boot_info_t *boot_info)
 {
@@ -33,9 +34,14 @@ void init_task_entry(void) {
     }
 }
 
+void list_test() {
+    list_t list;
+    list_init(&list);
+}
 
 void init_main(void)
 {
+    list_test(); // 测试list_t的初始化
     // int a = 3 / 0; // 观察异常处理流程
     // irq_enable_global();
 
