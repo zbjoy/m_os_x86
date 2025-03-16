@@ -37,6 +37,7 @@ void init_task_entry(void) {
 void list_test() {
     list_t list;
     list_init(&list);
+    log_printf("list_test: first=0x%x, last=0x%x, list_is_empty=%d, list_count=%d", list_first(&list), list_last(&list), list_is_empty(&list), list_count(&list));
 }
 
 void init_main(void)
