@@ -81,6 +81,9 @@ void list_test() {
         list_node_t node;
     } v = {0x123456};
 
+    uint32_t addr = (uint32_t)&((struct type_t*)0)->node;
+    uint32_t parent_addr = offset_in_parent(struct type_t, node);
+
     list_node_t* v_node = &v.node;
     struct type_t* p = list_node2parent(v_node, struct type_t, node);
     if (p->i == 0x123456) {
