@@ -75,6 +75,17 @@ void list_test() {
         list_remove(&list, node);
     }
     log_printf("list_test: first=0x%x, last=0x%x, list_is_empty=%d, list_count=%d", list_first(&list), list_last(&list), list_is_empty(&list), list_count(&list));
+
+    struct type_t {
+        int i;
+        list_node_t node;
+    } v = {0x123456};
+
+    list_node_t* v_node = &v.node;
+    struct type_t* p = list_node2parent(v_node, struct type_t, node);
+    if (p->i == 0x123456) {
+        log_printf("list_node2parent: success");
+    }
 }
 
 void init_main(void)

@@ -1,7 +1,7 @@
 #ifndef LIST_H
 #define LIST_H
 
-#include "kernel/include/types.h"
+#include "comm/types.h"
 
 // 链表节点:
 typedef struct _list_node_t {
