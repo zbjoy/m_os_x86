@@ -1,6 +1,8 @@
 #ifndef LIST_H
 #define LIST_H
 
+#include "kernel/include/types.h"
+
 // 链表节点:
 typedef struct _list_node_t {
     struct _list_node_t *pre;
@@ -49,5 +51,14 @@ void list_insert_last(list_t* list, list_node_t* node);
 
 list_node_t* list_remove_first(list_t* list);
 list_node_t* list_remove(list_t* list, list_node_t* node);
+
+#define offset_in_parent(parent_type, node_name) \
+    ((uint32_t)&(((parent_type*)0))->node_name)
+
+#define parent_addr(node, parent_type, node_name) \
+    ((uint32_t)node - offset_in_parent(parent_type, node_name))
+
+#define list_node2parent(node, parent_type, node_name) \
+    ((parent_type*)(node ? parent_addr(node, parent_type, node_name) : 0))
 
 #endif
