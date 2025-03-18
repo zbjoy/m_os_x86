@@ -20,6 +20,8 @@ void kernel_init(boot_info_t *boot_info)
 
     irq_init();
     time_init();
+
+    task_manager_init();
 }
 
 static task_t first_task;
@@ -30,7 +32,7 @@ void init_task_entry(void) {
     int count = 0;
     for (;;) {
         log_printf("init task: %d", count++);
-        task_switch_from_to(&init_task, &first_task);
+        task_switch_from_to(&init_task, task_first_task());
     }
 }
 
@@ -93,7 +95,7 @@ void list_test() {
 
 void init_main(void)
 {
-    list_test(); // 测试list_t的初始化
+    // list_test(); // 测试list_t的初始化
 
 
     // int a = 3 / 0; // 观察异常处理流程
@@ -104,13 +106,14 @@ void init_main(void)
     log_printf("%d %d %x %c", 123, -123456, 0x12345, 'a');
 
     task_init(&init_task, (uint32_t)init_task_entry, (uint32_t)&init_task_stack[1024]); // x86下，esp是向下增长的，所以这里传入的是最后一个有效地址
-    task_init(&first_task, 0, 0);
-    write_tr(first_task.tss_sel);
+    // task_init(&first_task, 0, 0);
+    // write_tr(first_task.tss_sel);
+    task_first_init();
 
     int count = 0;
     for (;;)
     {
         log_printf("int main: %d", count++);
-        task_switch_from_to(&first_task, &init_task);
+        task_switch_from_to(task_first_task(), &init_task);
     }
 }
