@@ -105,7 +105,7 @@ void init_main(void)
     log_printf("Version: %s, %s\n", OS_VERSION, "diyx86");
     log_printf("%d %d %x %c", 123, -123456, 0x12345, 'a');
 
-    task_init(&init_task, (uint32_t)init_task_entry, (uint32_t)&init_task_stack[1024]); // x86下，esp是向下增长的，所以这里传入的是最后一个有效地址
+    task_init(&init_task, "init task", (uint32_t)init_task_entry, (uint32_t)&init_task_stack[1024]); // x86下，esp是向下增长的，所以这里传入的是最后一个有效地址
     // task_init(&first_task, 0, 0);
     // write_tr(first_task.tss_sel);
     task_first_init();
