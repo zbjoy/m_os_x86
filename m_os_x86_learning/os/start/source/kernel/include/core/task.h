@@ -6,6 +6,7 @@
 #include "kernel/include/tools/list.h"
 
 #define TASK_NAME_SIZR 32
+#define TASK_TIME_SLICE_DEFAULT 10
 
 typedef struct _task_t {
     // uint32_t* stack;

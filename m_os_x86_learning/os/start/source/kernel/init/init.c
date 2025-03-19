@@ -111,6 +111,8 @@ void init_main(void)
     // write_tr(first_task.tss_sel);
     task_first_init();
 
+    irq_enable_global();
+
     int count = 0;
     for (;;)
     {
