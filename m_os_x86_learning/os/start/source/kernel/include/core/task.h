@@ -18,6 +18,9 @@ typedef struct _task_t {
         TASK_WAITTING, // 进程在等待某个事件, eg: 等待IO完成, 等待磁盘空闲
     } state;
 
+    int time_ticks; // 进程运行的时间片
+    int slice_ticks; // 进程的时间片长度
+
     char name[TASK_NAME_SIZR];
 
     list_node_t run_node;
@@ -49,5 +52,7 @@ task_t* task_next_run(void);
 task_t* task_current(void);
 int sys_sched_yield(void);
 void task_dispatch(void);
+
+void task_time_tick(void);
 
 #endif

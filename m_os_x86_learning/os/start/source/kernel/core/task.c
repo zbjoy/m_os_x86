@@ -128,3 +128,16 @@ void task_dispatch(void) {
     }
 }
 
+void task_time_tick(void) {
+    task_t* curr_task = task_current();
+
+    if (--curr_task->slice_ticks == 0) { // 说明任务运行时间太长, 时间片用完了
+        curr_task->slice_ticks = curr_task->time_ticks;
+
+        task_set_block(curr_task);
+        task_set_ready(curr_task);
+
+        task_dispatch();
+    }
+}
+
