@@ -95,3 +95,36 @@ void task_set_block(task_t* task) {
     list_remove(&task_manager.ready_list, &task->run_node);
 }
 
+task_t* task_next_run(void) {
+    list_node_t* task_node = list_first(&task_manager.ready_list);
+    return list_node2parent(task_node, task_t, run_node);
+}
+
+task_t* task_current(void) {
+    return task_manager.curr_task;
+}
+
+int sys_sched_yield(void) {
+    if (list_count(&task_manager.ready_list) > 1) { // 至少有两个就绪任务 才切换
+        task_t* curr_task = task_current();
+
+        task_set_block(curr_task); // 将当前任务从头部取出来
+        task_set_ready(curr_task); // 将当前任务放到尾部
+
+        task_dispatch(); // 切换任务到下一个就绪任务
+    }
+
+    return 0;
+}
+
+void task_dispatch(void) {
+    task_t* to = task_next_run();
+    if (to != task_current()) {
+        task_t* from = task_current();
+        task_manager.curr_task = to;
+        to->state = TASK_RUNNING;
+        // from->state = TASK_READY;
+        task_switch_from_to(from, to);
+    }
+}
+
