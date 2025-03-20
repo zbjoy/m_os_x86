@@ -97,4 +97,9 @@ void irq_disable_global(void);
 
 void pic_send_eoi(int irq_num);
 
+typedef uint32_t irq_state_t;
+irq_state_t irq_enter_protection(void);
+void irq_leave_protection(irq_state_t state);
+
+
 #endif

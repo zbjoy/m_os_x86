@@ -2,6 +2,7 @@
 #include "kernel/include/tools/log.h"
 #include "comm/cpu_instr.h"
 #include "kernel/include/tools/klib.h"
+#include "kernel/include/cpu/irq.h"
 
 #define COM1_PORT 0x3F8
 
@@ -26,6 +27,9 @@ void log_printf(const char *fmt,...) {
     kernel_vsprintf(str_buf, fmt, args);
     va_end(args); // 释放资源
 
+    // 进入临界区, 禁止中断
+    irq_state_t state = irq_enter_protection();
+
     const char* p = str_buf;
     while (*p != '\0') {
         while ((inb(COM1_PORT + 5) & (1 << 6)) == 0); // 等待空闲 (检查串行接口是否在忙)
@@ -33,6 +37,10 @@ void log_printf(const char *fmt,...) {
     }
     outb(COM1_PORT, '\r'); // 输出回车符
     outb(COM1_PORT, '\n'); // 输出换行符
+
+    // 退出临界区, 恢复中断
+    irq_leave_protection(state);
 }   
+
 
 

@@ -283,3 +283,14 @@ void pic_send_eoi(int irq_num)
     outb(PIC0_OCW2, PIC_OCW2_EOI);
 }
 
+irq_state_t irq_enter_protection(void) {
+    // 通过读 CPU 的 EFLAGS 寄存器的中断标志位 IF，判断是否发生了中断
+    irq_state_t state = read_eflags();
+    irq_disable_global();
+    return state;
+}
+
+void irq_leave_protection(irq_state_t state) {
+    // 判断之前中断是否开启
+    write_eflags(state);
+}

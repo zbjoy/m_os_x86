@@ -91,4 +91,16 @@ static inline void write_tr(uint32_t tss_sel) {
     __asm__ __volatile__("ltr %%ax"::"a"(tss_sel));
 }
 
+static inline uint32_t read_eflags(void) {
+    uint32_t eflags;
+    // pushf 会将 eflags 压栈，pop 会将栈顶的 eflags 弹出到 eflags 寄存器中
+    __asm__ __volatile__("pushf\n\tpop %%eax":"=a"(eflags)); // gcc 中 可以用 \n\t 来间隔两条指令
+    return eflags;
+}
+
+static inline void write_eflags(uint32_t eflags) {
+    // pushf 会将 eflags 压栈，popf 会将栈顶的 eflags 弹出到 eflags 寄存器中
+    __asm__ __volatile__("push %%eax\n\tpopf"::"a"(eflags));
+} 
+
 #endif
