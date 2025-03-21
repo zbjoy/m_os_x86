@@ -4,6 +4,7 @@
 #include "kernel/include/cpu/cpu.h"
 #include "kernel/include/tools/log.h"
 #include "comm/cpu_instr.h"
+#include "kernel/include/cpu/irq.h"
 
 static task_manager_t task_manager;
 
@@ -59,9 +60,16 @@ int task_init(task_t *task, const char* name, uint32_t entry, uint32_t esp) {
 
     list_node_init(&task->run_node);
     list_node_init(&task->all_node);
+
+    // 属于临界区, 必须使用临界区保护
+    irq_state_t state = irq_enter_protection();
+
     task_set_ready(task); // 将任务设置到就绪队列
 
     list_insert_last(&task_manager.task_list, &task->all_node);
+
+    // 退出临界区
+    irq_leave_protection(state);
     
     return 0;
 }
@@ -109,6 +117,9 @@ task_t* task_current(void) {
 }
 
 int sys_sched_yield(void) {
+    // 临界区保护
+    irq_state_t state = irq_enter_protection();
+
     if (list_count(&task_manager.ready_list) > 1) { // 至少有两个就绪任务 才切换
         task_t* curr_task = task_current();
 
@@ -118,10 +129,16 @@ int sys_sched_yield(void) {
         task_dispatch(); // 切换任务到下一个就绪任务
     }
 
+    // 退出临界区
+    irq_leave_protection(state);
+
     return 0;
 }
 
 void task_dispatch(void) {
+    // 临界区保护
+    irq_state_t state = irq_enter_protection();
+
     task_t* to = task_next_run();
     if (to != task_current()) {
         task_t* from = task_current();
@@ -130,6 +147,9 @@ void task_dispatch(void) {
         // from->state = TASK_READY;
         task_switch_from_to(from, to);
     }
+
+    // 退出临界区
+    irq_leave_protection(state);
 }
 
 void task_time_tick(void) {
