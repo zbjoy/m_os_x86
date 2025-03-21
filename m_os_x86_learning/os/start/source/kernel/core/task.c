@@ -57,6 +57,7 @@ int task_init(task_t *task, const char* name, uint32_t entry, uint32_t esp) {
 
     task->time_ticks = TASK_TIME_SLICE_DEFAULT;
     task->slice_ticks = task->time_ticks;
+    task->sleep_ticks = 0;
 
     list_node_init(&task->run_node);
     list_node_init(&task->all_node);
@@ -163,5 +164,45 @@ void task_time_tick(void) {
 
         task_dispatch();
     }
+
+    list_node_t* curr = list_first(&task_manager.sleep_list);
+    while (curr) {
+        list_node_t* next = list_node_next(curr);
+        task_t* task = list_node2parent(curr, task_t, run_node);
+        // 要注意一旦 sleep_ticks 是 负数, 会导致死循环
+        if (--task->sleep_ticks == 0) {
+            task_set_wakeup(task);
+            task_set_ready(task);
+        }
+
+        curr = next;
+    }
+    task_dispatch();
+}
+
+void task_set_sleep(task_t* task, uint32_t ticks) {
+    if (ticks == 0) {
+        return;
+    }
+
+    task->sleep_ticks = ticks;
+    task->state = TASK_SLEEP;
+    list_insert_last(&task_manager.sleep_list, &task->run_node);
+}
+
+void task_set_wakeup(task_t* task) {
+    list_remove(&task_manager.sleep_list, &task->run_node);
+}
+void sys_sleep(uint32_t ms) {
+    irq_state_t state = irq_enter_protection();
+
+    // 将 ms 改成对时钟节拍的计数
+    task_set_block(task_current());
+    
+    // 一个时钟节拍是 10ms, 所以需要将 ms 除以 10 得到时钟节拍数
+    task_set_sleep(task_current(), (ms + (OS_TICKS_MS - 1)) / OS_TICKS_MS);
+    task_dispatch();
+
+    irq_leave_protection(state);
 }
 
