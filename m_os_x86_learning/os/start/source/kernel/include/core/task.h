@@ -7,6 +7,7 @@
 
 #define TASK_NAME_SIZR 32
 #define TASK_TIME_SLICE_DEFAULT 10
+#define IDLE_TASK_SIZE 1024
 
 typedef struct _task_t {
     // uint32_t* stack;
@@ -42,6 +43,7 @@ typedef struct _task_manager_t {
     list_t sleep_list;
 
     task_t first_task;
+    task_t idle_task;
 } task_manager_t;
 
 void task_manager_init(void);

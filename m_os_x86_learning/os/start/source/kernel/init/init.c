@@ -31,8 +31,8 @@ static task_t init_task;
 void init_task_entry(void) {
     int count = 0;
     for (;;) {
-        // log_printf("init task: %d", count++);
-        // sys_sleep(1000);
+        log_printf("init task: %d", count++);
+        sys_sleep(3000);
         // task_switch_from_to(&init_task, task_first_task());
         // sys_sched_yield();
     }
