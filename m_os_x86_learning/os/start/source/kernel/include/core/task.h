@@ -27,6 +27,7 @@ typedef struct _task_t {
     char name[TASK_NAME_SIZR];
 
     list_node_t run_node;
+    list_node_t wait_node; // 方便后续需要计时时将wait_node放到等待队列, 而将run_node放到延时队列
     list_node_t all_node;
     tss_t tss;
     uint16_t tss_sel;

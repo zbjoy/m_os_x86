@@ -61,6 +61,7 @@ int task_init(task_t *task, const char* name, uint32_t entry, uint32_t esp) {
     task->sleep_ticks = 0;
 
     list_node_init(&task->run_node);
+    list_node_init(&task->wait_node);
     list_node_init(&task->all_node);
 
     // 属于临界区, 必须使用临界区保护
