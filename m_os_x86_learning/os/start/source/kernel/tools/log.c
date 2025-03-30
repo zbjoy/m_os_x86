@@ -3,10 +3,14 @@
 #include "comm/cpu_instr.h"
 #include "kernel/include/tools/klib.h"
 #include "kernel/include/cpu/irq.h"
+#include "kernel/include/ipc/mutex.h"
+
+static mutex_t mutex;
 
 #define COM1_PORT 0x3F8
 
 void log_init(void) {
+    mutex_init(&mutex);
     outb(COM1_PORT + 1, 0x00); // 关掉串行接口内部的中断
     outb(COM1_PORT + 3, 0x80); // 设置 DLAB 为 1(与速度有关)
     outb(COM1_PORT + 0, 0x03); // 设置波特率为 38400
@@ -28,7 +32,8 @@ void log_printf(const char *fmt,...) {
     va_end(args); // 释放资源
 
     // 进入临界区, 禁止中断
-    irq_state_t state = irq_enter_protection();
+    // irq_state_t state = irq_enter_protection();
+    mutex_lock(&mutex);
 
     const char* p = str_buf;
     while (*p != '\0') {
@@ -39,7 +44,8 @@ void log_printf(const char *fmt,...) {
     outb(COM1_PORT, '\n'); // 输出换行符
 
     // 退出临界区, 恢复中断
-    irq_leave_protection(state);
+    // irq_leave_protection(state);
+    mutex_unlock(&mutex);
 }   
 
 

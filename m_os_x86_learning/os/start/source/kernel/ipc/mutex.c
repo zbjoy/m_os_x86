@@ -1,6 +1,6 @@
 #include "kernel/include/ipc/mutex.h"
 #include "kernel/include/cpu/irq.h"
-#include "kernel/include/core/task.h"
+// #include "kernel/include/core/task.h"
 
 void mutex_init(mutex_t* mutex) {
     mutex->owner = 0;

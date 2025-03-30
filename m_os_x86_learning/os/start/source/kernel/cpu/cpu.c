@@ -2,8 +2,10 @@
 #include "kernel/include/os_cfg.h"
 #include "comm/cpu_instr.h"
 #include "kernel/include/cpu/irq.h"
+#include "kernel/include/ipc/mutex.h"
 
 static segment_desc_t gdt_table[GDT_TABLE_SIZE];
+static mutex_t mutex;
 
 void segment_desc_set(int selector, uint32_t base, uint32_t limit, uint16_t attr)
 {
@@ -35,19 +37,22 @@ void gate_desc_set(gate_desc_t* desc, uint16_t selector, uint32_t offset, uint16
 
 int gdt_alloc_desc() {
     // 进入临界区
-    irq_state_t state = irq_enter_protection();
+    // irq_state_t state = irq_enter_protection();
+    mutex_lock(&mutex);
 
     // 找到空闲的段描述符
     for (int i = 1; i < GDT_TABLE_SIZE; i++) {
         segment_desc_t* desc = gdt_table + i;
         if (desc->attribute == 0) {
-            irq_leave_protection(state);
+            // irq_leave_protection(state);
+            mutex_unlock(&mutex);
             return i * sizeof(segment_desc_t);
         }
     }
 
     // 退出临界区
-    irq_leave_protection(state);
+    // irq_leave_protection(state);
+    mutex_unlock(&mutex);
     return -1;
 }
 
@@ -72,6 +77,7 @@ void init_gdt(void)
 
 void cpu_init(void)
 {
+    mutex_init(&mutex);
     init_gdt();
 
 }

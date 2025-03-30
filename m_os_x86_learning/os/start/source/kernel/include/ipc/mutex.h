@@ -2,6 +2,7 @@
 #define MUTEX_H
 
 #include "kernel/include/tools/list.h"
+#include "kernel/include/core/task.h"
 
 typedef struct _mutex_t {
     task_t* owner; // 锁的拥有者
