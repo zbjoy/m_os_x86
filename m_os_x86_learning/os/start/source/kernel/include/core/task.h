@@ -56,7 +56,7 @@ void task_set_block(task_t* task);
 
 task_t* task_next_run(void);
 task_t* task_current(void);
-int sys_sched_yield(void);
+int sys_sched_yield(void); //   进程调度
 void task_dispatch(void);
 
 void task_time_tick(void);
