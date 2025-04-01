@@ -12,7 +12,7 @@ void bitmap_init(bitmap_t* bitmap, uint8_t* bits, int count, int init_bit) {
     kernel_memset(bitmap->bits, init_bit ? 0xFF : 0, bytes);
 }
 
-int bitmap_get_bit(bitmap_t* bitmap, int index) { // 获取位图的某一位的值
+int bitmap_get_bit(bitmap_t* bitmap, int index) { // 获取位图的某一位的值, 注意: 返回的是 int类型的字节大小为2个字节的数, 只是对应位为1
     return bitmap->bits[index / 8] & (1 << (index % 8));
 }
 void bitmap_set_bit(bitmap_t* bitmap, int index, int count, int bit) { // 设置位图的某一(或者count个)位的值
