@@ -20,6 +20,7 @@ void sem_wait(sem_t* sem) {
     irq_leave_protection(state);
 }
 
+// semaphore 通知函数
 void sem_notify(sem_t* sem) {
     irq_state_t state = irq_enter_protection();
 
