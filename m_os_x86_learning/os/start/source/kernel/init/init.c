@@ -10,12 +10,15 @@
 #include "comm/cpu_instr.h"
 #include "kernel/include/tools/list.h"
 #include "kernel/include/ipc/sem.h"
+#include "kernel/include/core/memory.h"
 
 void kernel_init(boot_info_t *boot_info)
 {
     // ASSERT(boot_info->ram_region_count != 0);
 
     cpu_init();
+    
+    memory_init(boot_info);
 
     log_init();
 

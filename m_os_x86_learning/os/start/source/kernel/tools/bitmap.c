@@ -38,7 +38,8 @@ int bitmap_alloc_nbits(bitmap_t* bitmap, int bit, int count) { // 在位图中�
         }
         // 如果找到了一个符合条件的位, 那么就开始判断后面是否有count个连续的符合条件的位
         ok_index = search_index;
-        for (int i = 1; (i < count) && (search_index < bitmap->bit_count); i++) {
+        int i = 1;
+        for (i = 1; (i < count) && (search_index < bitmap->bit_count); i++) {
             if (bitmap_get_bit(bitmap, search_index++) != bit) {
                 ok_index = -1; // 没有找到连续的count个符合条件的位, 退出循环
                 break;
