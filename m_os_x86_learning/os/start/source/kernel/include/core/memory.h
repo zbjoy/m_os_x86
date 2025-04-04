@@ -8,7 +8,7 @@
 
 typedef struct _addr_alloc_t {
     mutex_t mutex;
-    bitmap_t* bitmap;
+    bitmap_t bitmap;
     
     uint32_t start;
     uint32_t size;
