@@ -1,6 +1,7 @@
 #include "kernel/include/core/memory.h"
 #include "kernel/include/tools/log.h"
 
+static addr_alloc_t paddr_alloc;
 static void addr_alloc_init(addr_alloc_t* alloc, uint8_t* bits, uint32_t start, uint32_t size, uint32_t page_size) {
     mutex_init(&alloc->mutex);
     alloc->start = start;
@@ -52,6 +53,8 @@ static uint32_t total_mem_size(boot_info_t* boot_info) {
 }
 
 void memory_init(boot_info_t* boot_info) {
+    extern uint8_t* mem_free_start; // 定义在 source/kernel/kernel.lds 文件中, 通过关键字 PROVIDE 定义 让在 C语言 中可以引用, 指示了空闲内存的起始地址
+    uint8_t* mem_fre = mem_free_start; // 空闲内存起始地址, 因为 mem_free_start 不能直接更改, 所以这里定义一个指针指向它
 
     log_printf("memory_init\n");
 
@@ -59,6 +62,13 @@ void memory_init(boot_info_t* boot_info) {
 
     uint32_t mem_up1MB_free = total_mem_size(boot_info) - MEM_EXT_START; // 计算从1MB开始的空闲内存大小
     mem_up1MB_free = down2(mem_up1MB_free, MEM_PAGE_SIZE); // 向下取整到页大小的倍数
+
+    log_printf("free memory: 0x%x, size: 0x%x\n", MEM_EXT_START, mem_up1MB_free); // 显示空闲内存信息
+
+    // 对1MB以下的内存进行管理
+    addr_alloc_init(&paddr_alloc, mem_fre, MEM_EXT_START, mem_up1MB_free, MEM_PAGE_SIZE); // 初始化物理内存分配器, 1MB以下的内存
+    mem_fre += bitmap_byte_count(paddr_alloc.size / MEM_PAGE_SIZE); // 更新空闲内存起始地址, bitmap_byte_count 计算位图的字节数
+
 
 
     /**
@@ -76,7 +86,7 @@ void memory_init(boot_info_t* boot_info) {
     // uint32_t addr = 0x1000;
     // for (int i = 0; i < 32; i++) {
     //     addr_free_page(&addr_alloc, addr, 2);
-    //     addr += 8192; // 8192 = 2*4096, 即分配的页大小
     //     log_printf("free page %d at 0x%x\n", i, addr);
+    //     addr += 8192; // 8192 = 2*4096, 即分配的页大小
     // }
 }
