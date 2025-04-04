@@ -6,6 +6,9 @@
 #include "kernel/include/ipc/mutex.h"
 #include "comm/boot_info.h"
 
+#define MEM_EXT_START (1024 * 1024) // 1MB
+#define MEM_PAGE_SIZE (4096) // 4KB
+
 typedef struct _addr_alloc_t {
     mutex_t mutex;
     bitmap_t bitmap;

@@ -35,20 +35,48 @@ static void addr_free_page(addr_alloc_t* alloc, uint32_t addr, int page_count) {
     mutex_unlock(&alloc->mutex);
 }
 
+void show_mem_info(boot_info_t* boot_info) {
+    log_printf("memory region:\n");
+    for (int i = 0; i < boot_info->ram_region_count; i++) {
+        log_printf("ram region %d: start=0x%x, size=0x%x", i, boot_info->ram_region_cfg[i].start, boot_info->ram_region_cfg[i].size);
+    }
+    log_printf("\n");
+}
+
+static uint32_t total_mem_size(boot_info_t* boot_info) {
+    uint32_t mem_size = 0;
+    for (int i = 0; i < boot_info->ram_region_count; i++) {
+        mem_size += boot_info->ram_region_cfg[i].size;
+    }
+    return mem_size;
+}
+
 void memory_init(boot_info_t* boot_info) {
-    addr_alloc_t addr_alloc;
-    uint8_t bits[8];
 
-    addr_alloc_init(&addr_alloc, bits, 0x1000, 64*4096, 4096); // 初始化物理内存分配器, 64MB的内存
-    for (int i = 0; i < 32; i++) {
-        uint32_t addr = addr_alloc_page(&addr_alloc, 2);
-        log_printf("alloc page %d at 0x%x\n", i, addr);
-    }
+    log_printf("memory_init\n");
 
-    uint32_t addr = 0x1000;
-    for (int i = 0; i < 32; i++) {
-        addr_free_page(&addr_alloc, addr, 2);
-        addr += 8192; // 8192 = 2*4096, 即分配的页大小
-        log_printf("free page %d at 0x%x\n", i, addr);
-    }
+    show_mem_info(boot_info); // 显示内存信息
+
+    uint32_t mem_up1MB_free = total_mem_size(boot_info) - MEM_EXT_START; // 计算从1MB开始的空闲内存大小
+    mem_up1MB_free = down2(mem_up1MB_free, MEM_PAGE_SIZE); // 向下取整到页大小的倍数
+
+
+    /**
+     * 以下都是测试代码
+     */
+    // addr_alloc_t addr_alloc;
+    // uint8_t bits[8];
+
+    // addr_alloc_init(&addr_alloc, bits, 0x1000, 64*4096, 4096); // 初始化物理内存分配器, 64MB的内存
+    // for (int i = 0; i < 32; i++) {
+    //     uint32_t addr = addr_alloc_page(&addr_alloc, 2);
+    //     log_printf("alloc page %d at 0x%x\n", i, addr);
+    // }
+
+    // uint32_t addr = 0x1000;
+    // for (int i = 0; i < 32; i++) {
+    //     addr_free_page(&addr_alloc, addr, 2);
+    //     addr += 8192; // 8192 = 2*4096, 即分配的页大小
+    //     log_printf("free page %d at 0x%x\n", i, addr);
+    // }
 }
