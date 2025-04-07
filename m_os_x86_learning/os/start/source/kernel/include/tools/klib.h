@@ -4,10 +4,15 @@
 #include "comm/types.h"
 #include <stdarg.h>
 
+// down2: 向下对齐到指定的边界
+// 例如: down2(0x1234, 0x100) = 0x1200
+// 例如: down2(0x1234, 0x10) = 0x1230
 static inline uint32_t down2(uint32_t size, uint32_t bound) {
     return size & ~(bound - 1);
 }
 
+// up2: 向上对齐到指定的边界
+// 例如: up2(0x1234, 0x100) = 0x1300
 static inline uint32_t up2(uint32_t size, uint32_t bound) {
     return (size + bound - 1) & ~(bound - 1);
 }
