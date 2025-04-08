@@ -1,5 +1,6 @@
 #include "kernel/include/core/memory.h"
 #include "kernel/include/tools/log.h"
+#include "kernel/include/tools/klib.h"
 
 static addr_alloc_t paddr_alloc;
 static void addr_alloc_init(addr_alloc_t* alloc, uint8_t* bits, uint32_t start, uint32_t size, uint32_t page_size) {
