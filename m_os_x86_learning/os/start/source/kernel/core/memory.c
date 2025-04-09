@@ -4,6 +4,8 @@
 #include "kernel/include/cpu/mmu.h"
 
 static addr_alloc_t paddr_alloc;
+static pde_t kernel_page_dir[PDE_CNT] __attribute__((aligned(MEM_PAGE_SIZE))); // 页目录表, 4KB, 1024个页目录项, 每个页目录项4字节, 4KB
+
 static void addr_alloc_init(addr_alloc_t* alloc, uint8_t* bits, uint32_t start, uint32_t size, uint32_t page_size) {
     mutex_init(&alloc->mutex);
     alloc->start = start;

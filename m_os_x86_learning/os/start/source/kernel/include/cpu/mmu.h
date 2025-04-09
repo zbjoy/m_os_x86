@@ -3,6 +3,8 @@
 
 #include "comm/types.h"
 
+#define PDE_CNT 1024 // 页目录表项数
+
 typedef union _pde_t { // page directory entry (第一个表, 页目录表)
     uint32_t v;
     struct {
