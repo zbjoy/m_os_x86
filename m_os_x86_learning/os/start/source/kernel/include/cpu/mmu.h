@@ -21,7 +21,7 @@ typedef union _pde_t { // page directory entry (第一个表, 页目录表)
     };
 } pde_t;
 
-typedef union _pte_t { // page table entry (第一个表, 页目录表)
+typedef union _pte_t { // page table entry (第二个表, 页表)
     uint32_t v;
     struct {
         uint32_t present : 1; // 是否存在
