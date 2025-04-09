@@ -45,6 +45,28 @@ void show_mem_info(boot_info_t* boot_info) {
     log_printf("\n");
 }
 
+void create_kernel_table(void) {
+    extern uint8_t s_text[], e_text[], s_data[]; // 定义在 source/kernel/kernel.lds 文件中, 通过关键字 PROVIDE 定义 让在 C语言 中可以引用, 指示了内核代码的起始地址
+    extern uint8_t kernel_base[]; // 定义在 source/kernel/kernel.lds 文件中, 通过关键字 PROVIDE 定义 让在 C语言 中可以引用, 指示了内核代码的开始地址
+    static memory_map_t kernel_map[] = {
+        {kernel_base, s_text, kernel_base, 0},// 64KB 之前的数据
+        {s_text, e_text, s_text, 0}, // 让虚拟d址和物理地址相同, 也就是内核代码段的起始地址
+        {s_data, (void*)MEM_EBDA_START, s_data, 0} // 让虚拟地址和物理地址相同, 也就是内核数据段的起始地址
+    };
+
+    for (int i = 0; i < sizeof(kernel_map) / sizeof(memory_map_t) + 1; i++) {
+        memory_map_t* map = kernel_map + i;
+    
+        uint32_t vstart = down2((uint32_t)map->vstart, MEM_PAGE_SIZE); // 向下取整到4KB的倍数
+        uint32_t vend = up2((uint32_t)map->vend, MEM_PAGE_SIZE); // 向下取整到4KB的倍数
+
+        // 计算使用了多少内存页
+        int page_count = (vend - vstart) / MEM_PAGE_SIZE;
+
+        // TODO: 将虚拟地址和物理地址映射到内存表中
+    }
+}
+
 static uint32_t total_mem_size(boot_info_t* boot_info) {
     uint32_t mem_size = 0;
     for (int i = 0; i < boot_info->ram_region_count; i++) {
@@ -52,6 +74,8 @@ static uint32_t total_mem_size(boot_info_t* boot_info) {
     }
     return mem_size;
 }
+
+
 
 void memory_init(boot_info_t* boot_info) {
     extern uint8_t* mem_free_start; // 定义在 source/kernel/kernel.lds 文件中, 通过关键字 PROVIDE 定义 让在 C语言 中可以引用, 指示了空闲内存的起始地址
@@ -70,6 +94,8 @@ void memory_init(boot_info_t* boot_info) {
     addr_alloc_init(&paddr_alloc, mem_fre, MEM_EXT_START, mem_up1MB_free, MEM_PAGE_SIZE); // 初始化物理内存分配器, 1MB以下的内存
     mem_fre += bitmap_byte_count(paddr_alloc.size / MEM_PAGE_SIZE); // 更新空闲内存起始地址, bitmap_byte_count 计算位图的字节数
 
+    ASSERT(mem_fre < (uint8_t*)MEM_EBDA_START); // 确保空闲内存起始地址小于 EBDA 起始地址
+    create_kernel_table();
 
 
     /**
