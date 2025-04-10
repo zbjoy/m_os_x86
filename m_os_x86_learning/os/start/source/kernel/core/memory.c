@@ -48,8 +48,29 @@ void show_mem_info(boot_info_t* boot_info) {
     log_printf("\n");
 }
 
-int memory_create_map(pde_t* page_dir, uint32_t vaddr, uint32_t paddr, int count, uint32_t perm) {
+pte_t* find_pte(pde_t* page_dir, uint32_t vaddr, int alloc) { // 找到虚拟地址对应的页表项, alloc 表示是否要分配表项
+    pte_t* page_table;
+    // 高 10 位 作为页目录索引, 低 12 位 作为页表索引
+    pde_t* pde = page_dir + pde_index(vaddr); // 找到页目录项
 
+    if (pde->present) {
+        page_table = (pte_t*)pde_paddr(pde); // 找到页表的物理地址
+    }
+}
+
+int memory_create_map(pde_t* page_dir, uint32_t vaddr, uint32_t paddr, int count, uint32_t perm) {
+    for (int i = 0; i < count; i++) {
+        pte_t* pte = find_pte(page_dir, vaddr, 1); // 找到虚拟地址对应的页表项, 1 表示要分配表项
+        if (pte == (pte_t*)0) {
+            return -1; // 找不到页表项, 说明内存不足
+        }
+
+        ASSERT(pte->present == 0); // 确保该页表项不存在
+        pte->v = paddr | perm | PTE_P; // 设置页表项的值, 物理地址 | 权限 | 表明当前表项有效
+
+        vaddr += MEM_PAGE_SIZE; // 指向下一个虚拟地址
+        paddr += MEM_PAGE_SIZE; // 指向下一个物理地址
+    }
 }
 
 void create_kernel_table(void) {
