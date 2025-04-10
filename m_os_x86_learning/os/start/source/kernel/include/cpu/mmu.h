@@ -2,6 +2,7 @@
 #define MMU_H
 
 #include "comm/types.h"
+#include "comm/cpu_instr.h"
 
 #define PDE_CNT 1024 // 页目录表项数
 
@@ -37,5 +38,9 @@ typedef union _pte_t { // page table entry (第二个表, 页表)
         uint32_t phy_page_addr : 20; // 物理页地址
     };
 } pte_t;
+
+static inline void mmu_set_page_dir(uint32_t paddr) {
+    write_cr3(paddr);
+}
 
 #endif

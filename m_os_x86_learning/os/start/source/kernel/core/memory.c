@@ -48,6 +48,10 @@ void show_mem_info(boot_info_t* boot_info) {
     log_printf("\n");
 }
 
+int memory_create_map(pde_t* page_dir, uint32_t vaddr, uint32_t paddr, int count, uint32_t perm) {
+
+}
+
 void create_kernel_table(void) {
     extern uint8_t s_text[], e_text[], s_data[]; // 定义在 source/kernel/kernel.lds 文件中, 通过关键字 PROVIDE 定义 让在 C语言 中可以引用, 指示了内核代码的起始地址
     extern uint8_t kernel_base[]; // 定义在 source/kernel/kernel.lds 文件中, 通过关键字 PROVIDE 定义 让在 C语言 中可以引用, 指示了内核代码的开始地址
@@ -67,6 +71,8 @@ void create_kernel_table(void) {
         int page_count = (vend - vstart) / MEM_PAGE_SIZE;
 
         // TODO: 将虚拟地址和物理地址映射到内存表中
+
+        memory_create_map(kernel_page_dir, vstart, (uint32_t)map->pstart, page_count, map->perm); // 建立一个映射, 将 vstart 的虚拟地址映射到 pstart 的物理地址, 页数为 page_count, 权限为 map->perm
     }
 }
 
@@ -99,6 +105,9 @@ void memory_init(boot_info_t* boot_info) {
 
     ASSERT(mem_fre < (uint8_t*)MEM_EBDA_START); // 确保空闲内存起始地址小于 EBDA 起始地址
     create_kernel_table();
+
+    // 将 kernel_page_dir 映射到内存表中 (放到 cr3 寄存器 中)
+    mmu_set_page_dir((uint32_t)kernel_page_dir); // 将页目录表映射到 cr3 寄存器中
 
 
     /**
