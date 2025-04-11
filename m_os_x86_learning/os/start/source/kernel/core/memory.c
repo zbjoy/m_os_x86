@@ -63,6 +63,9 @@ pte_t* find_pte(pde_t* page_dir, uint32_t vaddr, int alloc) { // 找到虚拟地
         if (pg_paddr == 0) { // 分配失败
             return (pte_t*)0; // 分配失败, 返回空指针
         }
+
+        pde->v = pg_paddr | PDE_P; // 设置页目录项的值, 物理地址 | 表明当前表项有效
+
         page_table = (pte_t*)pg_paddr; // 找到页表的物理地址
         kernel_memset(page_table, 0, MEM_PAGE_SIZE); // 页表清零
     }

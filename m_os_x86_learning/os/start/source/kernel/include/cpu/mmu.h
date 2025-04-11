@@ -7,6 +7,7 @@
 #define PDE_CNT 1024 // 页目录表项数
 
 #define PTE_P (1 << 0) // 存在位置, 页表项有效
+#define PDE_P (1 << 0) // 存在位置, 页目录项有效
 
 typedef union _pde_t { // page directory entry (第一个表, 页目录表)
     uint32_t v;
