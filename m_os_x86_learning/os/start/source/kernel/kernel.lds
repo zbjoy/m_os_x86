@@ -2,7 +2,6 @@ SECTIONS
 {
     PROVIDE(kernel_base = .);
     . = 0x10000;
-    /* . = 0x100000; */
 
     PROVIDE(s_text = .);
 
@@ -16,8 +15,7 @@ SECTIONS
 
     PROVIDE(e_text = .);
 
-    /* . = 0x200000; */
-
+    . = ALIGN(4096);
     PROVIDE(s_data = .);
     .data : {
         *(.data)

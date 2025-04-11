@@ -83,7 +83,7 @@ int memory_create_map(pde_t* page_dir, uint32_t vaddr, uint32_t paddr, int count
             return -1; // 找不到页表项, 说明内存不足
         }
 
-        log_printf("pte->v=0x%x\n", (uint32_t)pte); // 显示页表项的值
+        log_printf("pte=0x%x\n", (uint32_t)pte); // 显示页表项的值
         ASSERT(pte->present == 0); // 确保该页表项不存在
         pte->v = paddr | perm | PTE_P; // 设置页表项的值, 物理地址 | 权限 | 表明当前表项有效
 
@@ -101,18 +101,20 @@ void create_kernel_table(void) {
         {s_data, (void*)MEM_EBDA_START, s_data, 0} // 让虚拟地址和物理地址相同, 也就是内核数据段的起始地址
     };
 
-    for (int i = 0; i < sizeof(kernel_map) / sizeof(memory_map_t) + 1; i++) {
+    for (int i = 0; i < sizeof(kernel_map) / sizeof(memory_map_t); i++) {
         memory_map_t* map = kernel_map + i;
     
         uint32_t vstart = down2((uint32_t)map->vstart, MEM_PAGE_SIZE); // 向下取整到4KB的倍数
         uint32_t vend = up2((uint32_t)map->vend, MEM_PAGE_SIZE); // 向下取整到4KB的倍数
+
+        uint32_t pstart = down2((uint32_t)map->pstart, MEM_PAGE_SIZE); // 向下取整到4KB的倍数
 
         // 计算使用了多少内存页
         int page_count = (vend - vstart) / MEM_PAGE_SIZE;
 
         // TODO: 将虚拟地址和物理地址映射到内存表中
 
-        memory_create_map(kernel_page_dir, vstart, (uint32_t)map->pstart, page_count, map->perm); // 建立一个映射, 将 vstart 的虚拟地址映射到 pstart 的物理地址, 页数为 page_count, 权限为 map->perm
+        memory_create_map(kernel_page_dir, vstart, (uint32_t)pstart, page_count, map->perm); // 建立一个映射, 将 vstart 的虚拟地址映射到 pstart 的物理地址, 页数为 page_count, 权限为 map->perm
     }
 }
 
