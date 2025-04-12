@@ -57,6 +57,11 @@ int gdt_alloc_desc() {
 }
 
 
+void gdt_free_sel(int sel) {
+
+}
+
+
 
 void init_gdt(void)
 {

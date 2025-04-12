@@ -24,7 +24,15 @@ static int tss_init(task_t* task, uint32_t entry, uint32_t esp) {
     task->tss.es = task->tss.ds = task->tss.fs = task->tss.gs = KERNEL_SELECTOR_DS;          // 任务的数据段选择子
     task->tss.cs = KERNEL_SELECTOR_CS;           // 任务的代码段选择子
     task->tss.eflags = EFLAGS_IF | EFLAGS_DEFAULT;
-    task->tss.iomap = 0;
+
+    uint32_t page_dir = memory_create_uvm(); // 创建一个新的页目录表, 物理地址
+    if (page_dir == 0) {
+        gdt_free_sel(tss_sel); // 释放分配的选择子
+        return -1;
+    }
+    task->tss.cr3 = page_dir; // 设置任务的页目录表地址
+
+    // task->tss.iomap = 0;
 
     task->tss_sel = tss_sel;
 
