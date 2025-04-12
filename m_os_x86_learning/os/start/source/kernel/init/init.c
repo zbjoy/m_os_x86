@@ -24,7 +24,7 @@ void kernel_init(boot_info_t *boot_info)
 
     // *(uint8_t*)test = 0x12; 
     
-    // memory_init(boot_info);
+    memory_init(boot_info);
 
     // *(uint8_t*)test = 0x34; 
 

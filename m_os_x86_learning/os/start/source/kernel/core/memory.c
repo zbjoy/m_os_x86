@@ -98,7 +98,8 @@ void create_kernel_table(void) {
     static memory_map_t kernel_map[] = {
         {kernel_base, s_text, kernel_base, PTE_W},// 64KB 之前的数据
         {s_text, e_text, s_text, 0}, // 让虚拟d址和物理地址相同, 也就是内核代码段的起始地址
-        {s_data, (void*)MEM_EBDA_START, s_data, PTE_W} // 让虚拟地址和物理地址相同, 也就是内核数据段的起始地址
+        {s_data, (void*)MEM_EBDA_START, s_data, PTE_W}, // 让虚拟地址和物理地址相同, 也就是内核数据段的起始地址
+        {(void*)MEM_EXT_START, (void*)MEM_EXT_END, (void*)MEM_EXT_START, PTE_W}
     };
 
     for (int i = 0; i < sizeof(kernel_map) / sizeof(memory_map_t); i++) {
