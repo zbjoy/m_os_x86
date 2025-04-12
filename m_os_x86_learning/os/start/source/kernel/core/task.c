@@ -5,6 +5,7 @@
 #include "kernel/include/tools/log.h"
 #include "comm/cpu_instr.h"
 #include "kernel/include/cpu/irq.h"
+#include "kernel/include/core/memory.h"
 
 static uint32_t idel_task_stack[IDLE_TASK_SIZE];
 static task_manager_t task_manager;

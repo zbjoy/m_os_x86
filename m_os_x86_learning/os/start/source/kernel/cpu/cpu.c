@@ -58,7 +58,16 @@ int gdt_alloc_desc() {
 
 
 void gdt_free_sel(int sel) {
+    // 进入临界区
+    // irq_state_t state = irq_enter_protection();
+    mutex_lock(&mutex);
 
+    // 释放段描述符
+    gdt_table[sel / sizeof(segment_desc_t)].attribute = 0;
+
+    // 退出临界区
+    // irq_leave_protection(state);
+    mutex_unlock(&mutex);
 }
 
 

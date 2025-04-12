@@ -127,6 +127,23 @@ static uint32_t total_mem_size(boot_info_t* boot_info) {
 }
 
 
+uint32_t memory_create_uvm(void) { // 创建一个页表, 返回页目录表的物理地址
+    pde_t* page_dir = (pde_t*)addr_alloc_page(&paddr_alloc, 1); // 分配一个页目录表, 物理地址
+    if (page_dir == (pde_t*)0) { // 分配失败
+        return 0; // 分配失败, 返回空指针
+    }
+    kernel_memset((void*)page_dir, 0, MEM_PAGE_SIZE); // 页目录表清零
+    // 建立页目录表
+    uint32_t user_pde_start = pde_index(MEMORY_TASK_BASE); 
+    // 每个进程都共享操作系统的代码段和数据段, 也就是内核的代码段和数据段, 所以 0-0x80000000 都映射到内核的地址空间
+    //   如果为每个进程这里都分配内存就有点浪费空间了
+    for (int i = 0; i < user_pde_start; i++) {
+        page_dir[i].v = (uint32_t)kernel_page_dir[i].v; // 让用户进程的页目录表指向内核的页目录表
+    }
+
+    return (uint32_t)page_dir; // 返回页目录表的物理地址
+}
+
 
 void memory_init(boot_info_t* boot_info) {
     extern uint8_t* mem_free_start; // 定义在 source/kernel/kernel.lds 文件中, 通过关键字 PROVIDE 定义 让在 C语言 中可以引用, 指示了空闲内存的起始地址
