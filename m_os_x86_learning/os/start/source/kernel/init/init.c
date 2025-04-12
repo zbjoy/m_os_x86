@@ -22,11 +22,11 @@ void kernel_init(boot_info_t *boot_info)
 
     cpu_init();
 
-    *(uint8_t*)test = 0x12; 
+    // *(uint8_t*)test = 0x12; 
     
-    memory_init(boot_info);
+    // memory_init(boot_info);
 
-    *(uint8_t*)test = 0x34; 
+    // *(uint8_t*)test = 0x34; 
 
     log_init();
 

@@ -74,16 +74,16 @@ pte_t* find_pte(pde_t* page_dir, uint32_t vaddr, int alloc) { // 找到虚拟地
 
 int memory_create_map(pde_t* page_dir, uint32_t vaddr, uint32_t paddr, int count, uint32_t perm) {
     for (int i = 0; i < count; i++) {
-        log_printf("create map: vaddr=0x%x, paddr=0x%x, count=%d, perm=0x%x\n", vaddr, paddr, count, perm); // 显示映射信息
+        // log_printf("create map: vaddr=0x%x, paddr=0x%x, count=%d, perm=0x%x\n", vaddr, paddr, count, perm); // 显示映射信息
 
         // 找到虚拟地址对应的页表项, 并分配表项
         pte_t* pte = find_pte(page_dir, vaddr, 1); // 找到虚拟地址对应的页表项, 1 表示要分配表项
         if (pte == (pte_t*)0) {
-            log_printf("find_pte failed.pte == 0\n");
+            // log_printf("find_pte failed.pte == 0\n");
             return -1; // 找不到页表项, 说明内存不足
         }
 
-        log_printf("pte=0x%x\n", (uint32_t)pte); // 显示页表项的值
+        // log_printf("pte=0x%x\n", (uint32_t)pte); // 显示页表项的值
         ASSERT(pte->present == 0); // 确保该页表项不存在
         pte->v = paddr | perm | PTE_P ; // 设置页表项的值, 物理地址 | 权限 | 表明当前表项有效
 
