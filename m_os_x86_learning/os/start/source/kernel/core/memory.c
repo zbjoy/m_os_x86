@@ -85,7 +85,7 @@ int memory_create_map(pde_t* page_dir, uint32_t vaddr, uint32_t paddr, int count
 
         log_printf("pte=0x%x\n", (uint32_t)pte); // 显示页表项的值
         ASSERT(pte->present == 0); // 确保该页表项不存在
-        pte->v = paddr | perm | PTE_P; // 设置页表项的值, 物理地址 | 权限 | 表明当前表项有效
+        pte->v = paddr | perm | PDE_P | PDE_W | PDE_U; // 设置页表项的值, 物理地址 | 权限 | 表明当前表项有效
 
         vaddr += MEM_PAGE_SIZE; // 指向下一个虚拟地址
         paddr += MEM_PAGE_SIZE; // 指向下一个物理地址
@@ -96,9 +96,9 @@ void create_kernel_table(void) {
     extern uint8_t s_text[], e_text[], s_data[]; // 定义在 source/kernel/kernel.lds 文件中, 通过关键字 PROVIDE 定义 让在 C语言 中可以引用, 指示了内核代码的起始地址
     extern uint8_t kernel_base[]; // 定义在 source/kernel/kernel.lds 文件中, 通过关键字 PROVIDE 定义 让在 C语言 中可以引用, 指示了内核代码的开始地址
     static memory_map_t kernel_map[] = {
-        {kernel_base, s_text, kernel_base, 0},// 64KB 之前的数据
+        {kernel_base, s_text, kernel_base, PTE_W},// 64KB 之前的数据
         {s_text, e_text, s_text, 0}, // 让虚拟d址和物理地址相同, 也就是内核代码段的起始地址
-        {s_data, (void*)MEM_EBDA_START, s_data, 0} // 让虚拟地址和物理地址相同, 也就是内核数据段的起始地址
+        {s_data, (void*)MEM_EBDA_START, s_data, PTE_W} // 让虚拟地址和物理地址相同, 也就是内核数据段的起始地址
     };
 
     for (int i = 0; i < sizeof(kernel_map) / sizeof(memory_map_t); i++) {
