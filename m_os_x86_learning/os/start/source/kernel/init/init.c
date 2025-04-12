@@ -12,13 +12,21 @@
 #include "kernel/include/ipc/sem.h"
 #include "kernel/include/core/memory.h"
 
+void test() {
+
+}
+
 void kernel_init(boot_info_t *boot_info)
 {
     // ASSERT(boot_info->ram_region_count != 0);
 
     cpu_init();
+
+    *(uint8_t*)test = 0x12; 
     
     memory_init(boot_info);
+
+    *(uint8_t*)test = 0x34; 
 
     log_init();
 

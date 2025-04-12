@@ -64,7 +64,7 @@ pte_t* find_pte(pde_t* page_dir, uint32_t vaddr, int alloc) { // 找到虚拟地
             return (pte_t*)0; // 分配失败, 返回空指针
         }
 
-        pde->v = pg_paddr | PDE_P; // 设置页目录项的值, 物理地址 | 表明当前表项有效
+        pde->v = pg_paddr | PDE_P | PDE_W | PDE_U; // 设置页目录项的值, 物理地址 | 表明当前表项有效
 
         page_table = (pte_t*)pg_paddr; // 找到页表的物理地址
         kernel_memset(page_table, 0, MEM_PAGE_SIZE); // 页表清零
@@ -85,7 +85,7 @@ int memory_create_map(pde_t* page_dir, uint32_t vaddr, uint32_t paddr, int count
 
         log_printf("pte=0x%x\n", (uint32_t)pte); // 显示页表项的值
         ASSERT(pte->present == 0); // 确保该页表项不存在
-        pte->v = paddr | perm | PDE_P | PDE_W | PDE_U; // 设置页表项的值, 物理地址 | 权限 | 表明当前表项有效
+        pte->v = paddr | perm | PTE_P ; // 设置页表项的值, 物理地址 | 权限 | 表明当前表项有效
 
         vaddr += MEM_PAGE_SIZE; // 指向下一个虚拟地址
         paddr += MEM_PAGE_SIZE; // 指向下一个物理地址
