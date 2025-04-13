@@ -25,10 +25,11 @@ SECTIONS
         *(EXCLUDE_FILE(*first_task*) .bss)
     }
 
-    e_data = .;
+    /* e_data = .; */
 
     . = 0x80000000;
-    .first_task : AT(e_data) {
+    /* .first_task : AT(e_data) { */
+    .first_task : AT(ADDR(.bss) + SIZEOF(.bss)){
         *first_task_entry*(.text .rodata .bss .data)
         *first_task*(.text .rodata .bss .data)
     }
