@@ -6,6 +6,7 @@
 #include "comm/cpu_instr.h"
 #include "kernel/include/cpu/irq.h"
 #include "kernel/include/core/memory.h"
+#include "kernel/include/cpu/mmu.h"
 
 static uint32_t idel_task_stack[IDLE_TASK_SIZE];
 static task_manager_t task_manager;
@@ -123,7 +124,9 @@ void task_first_init(void) {
     write_tr(task_manager.first_task.tss_sel);
     task_manager.curr_task = &task_manager.first_task;
 
-    // 切换页表
+    // 将页表切换到 first_task 的页表
+    mmu_set_page_dir(task_manager.first_task.tss.cr3); // 设置页目录表
+
 }
 
 task_t* task_first_task(void) {

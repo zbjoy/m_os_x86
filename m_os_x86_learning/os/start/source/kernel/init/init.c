@@ -109,6 +109,16 @@ void list_test() {
     }
 }
 
+void move_to_first_task(void) {
+    task_t* curr = task_current();
+    ASSERT(curr != 0);
+
+    tss_t* tss = &(curr->tss); // 使用 eip 来 跳转 到 第一个任务的入口地址
+    __asm__ __volatile__(
+        "jmp *%[ip]"::[ip]"r"(tss->eip)
+    );
+}
+
 void init_main(void)
 {
     // list_test(); // 测试list_t的初始化
@@ -125,6 +135,7 @@ void init_main(void)
     // task_init(&first_task, 0, 0);
     // write_tr(first_task.tss_sel);
     task_first_init();
+    move_to_first_task(); // 切换到第一个任务, 会有优先级的切换
 
     // sem_init(&sem, 0);
 
