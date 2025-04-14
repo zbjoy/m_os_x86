@@ -28,6 +28,9 @@ SECTIONS
     /* e_data = .; */
 
     . = 0x80000000;
+
+    PROVIDE(s_first_task = LOADADDR(.first_task));
+
     /* .first_task : AT(e_data) { */
     .first_task : AT(ADDR(.bss) + SIZEOF(.bss)){
         *first_task_entry*(.text .rodata .bss .data)
