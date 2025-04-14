@@ -148,7 +148,7 @@ uint32_t memory_create_uvm(void) { // 创建一个页表, 返回页目录表的�
 
 void memory_init(boot_info_t* boot_info) {
     extern uint8_t* mem_free_start; // 定义在 source/kernel/kernel.lds 文件中, 通过关键字 PROVIDE 定义 让在 C语言 中可以引用, 指示了空闲内存的起始地址
-    uint8_t* mem_fre = mem_free_start; // 空闲内存起始地址, 因为 mem_free_start 不能直接更改, 所以这里定义一个指针指向它
+    uint8_t* mem_fre = (uint8_t*)&mem_free_start; // 空闲内存起始地址, 因为 mem_free_start 不能直接更改, 所以这里定义一个指针指向它
 
     log_printf("memory_init\n");
 
