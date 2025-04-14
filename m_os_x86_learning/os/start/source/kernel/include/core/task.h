@@ -57,12 +57,12 @@ void task_set_block(task_t* task);
 task_t* task_next_run(void);
 task_t* task_current(void);
 int sys_sched_yield(void); //   进程调度
-void task_dispatch(void);
+void task_dispatch(void); // 进程调度
 
-void task_time_tick(void);
+void task_time_tick(void); // 检查 sleep_list, 如果时间片耗尽, 则将进程从 ready_list 移到 sleep_list
 
-void task_set_sleep(task_t* task, uint32_t ticks);
-void task_set_wakeup(task_t* task);
-void sys_sleep(uint32_t ms);
+void task_set_sleep(task_t* task, uint32_t ticks); // 设置进程睡眠状态, 并将进程放到 sleep_list
+void task_set_wakeup(task_t* task); // 唤醒进程, 将进程从 sleep_list 移到 ready_list
+void sys_sleep(uint32_t ms); // 进程睡眠
 
 #endif
