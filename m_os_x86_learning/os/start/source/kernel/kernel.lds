@@ -37,6 +37,7 @@ SECTIONS
         *first_task*(.text .rodata .bss .data)
     }
 
-    e_first_task = LOADADDR(.first_task) + SIZEOF(.first_task);
+    PROVIDE(e_first_task = LOADADDR(.first_task) + SIZEOF(.first_task));
+
     PROVIDE(mem_free_start = e_first_task);
 }
