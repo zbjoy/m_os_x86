@@ -32,5 +32,6 @@ typedef struct _memory_map_t {
 void memory_init(boot_info_t* boot_info);
 
 uint32_t memory_create_uvm(void); // 创建一个页表, 返回页目录表的物理地址
+int memory_alloc_page_for(uint32_t addr, uint32_t size, uint32_t perm); // 为指定进程分配内存
 
 #endif

@@ -189,3 +189,31 @@ void memory_init(boot_info_t* boot_info) {
     //     addr += 8192; // 8192 = 2*4096, 即分配的页大小
     // }
 }
+
+int memory_alloc_for_page_dir(uint32_t page_dir, uint32_t vaddr, uint32_t size, uint32_t perm) { // 为指定页目录表分配内存
+    uint32_t curr_vaddr = vaddr;
+    int page_count = up2(size, MEM_PAGE_SIZE) / MEM_PAGE_SIZE; // 向上取整到页大小的倍数
+
+    for (int i = 0; i < page_count; i++) {
+        uint32_t paddr = addr_alloc_page(&paddr_alloc, 1); // 分配一个页物理内存
+        if (paddr == 0) {
+            log_printf("memory_alloc_for_page_dir failed. paddr == 0\n");
+            return 0; // 分配失败, 返回空指针
+        }
+
+        int err = memory_create_map((pde_t*)page_dir, curr_vaddr, paddr, 1, perm); // 建立一个映射, 将 vaddr 的虚拟地址映射到 paddr 的物理地址, 页数为 1, 权限为 perm
+        if (err < 0) {
+            log_printf("memory_create_map failed. err = %d\n", err);
+            // addr_free_page(&paddr_alloc, paddr, 1); // 释放分配的页物理内存
+            return 0; // 分配失败, 返回空指针
+        }
+
+        curr_vaddr += MEM_PAGE_SIZE; // 指向下一个虚拟地址
+    }
+
+    return 0; // 分配成功, 返回 0
+}
+
+int memory_alloc_page_for(uint32_t addr, uint32_t size, uint32_t perm) { // 为指定进程分配内存
+    return memory_alloc_for_page_dir(task_current()->tss.cr3, addr, size, perm); // 为指定进程页表分配内存
+}

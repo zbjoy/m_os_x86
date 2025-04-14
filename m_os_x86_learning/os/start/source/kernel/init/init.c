@@ -21,14 +21,13 @@ void kernel_init(boot_info_t *boot_info)
     // ASSERT(boot_info->ram_region_count != 0);
 
     cpu_init();
+    log_init();
 
     // *(uint8_t*)test = 0x12; 
     
     memory_init(boot_info);
 
     // *(uint8_t*)test = 0x34; 
-
-    log_init();
 
     irq_init();
     time_init();
