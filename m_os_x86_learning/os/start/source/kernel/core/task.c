@@ -118,9 +118,9 @@ void task_first_init(void) {
 
     extern uint8_t s_first_task[], e_first_task[]; // 任务的入口地址 和 结束地址
     
-    uint32_t copy_size = (uint32_t)e_first_task - (uint32_t)s_first_task; // 要拷贝的区域的大小
+    uint32_t copy_size = (uint32_t)(e_first_task - s_first_task); // 要拷贝的区域的大小
     uint32_t alloc_size = 10 * MEM_PAGE_SIZE; // 分配的大小, 10 个物理页
-    ASSERT(copy_size <= alloc_size); // 拷贝的大小不能超过分配的大小
+    ASSERT(copy_size < alloc_size); // 拷贝的大小不能超过分配的大小
 
     uint32_t first_start = (uint32_t)first_task_entry;
 
