@@ -59,16 +59,18 @@ static inline uint32_t pte_index(uint32_t vaddr) {
     return index;
 }
 
-//
+// 计算 pde 物理地址
 static inline uint32_t pde_paddr(pde_t* pde) {
     return pde->phy_pt_addr << 12;
 }
 
+// 计算 pte 物理地址
 static inline uint32_t pte_paddr(pte_t* pte) {
     return pte->phy_page_addr << 12;
 }
 
 
+// 设置页目录表地址
 static inline void mmu_set_page_dir(uint32_t paddr) {
     write_cr3(paddr);
 }
