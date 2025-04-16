@@ -22,8 +22,8 @@ static int tss_init(task_t* task, uint32_t entry, uint32_t esp) {
     kernel_memset(&task->tss, 0, sizeof(tss_t));
 
     int code_sel, data_sel;
-    code_sel = task_manager.app_code_sel | SEG_DPL3; // 代码段选择子, 3级特权级 
-    data_sel = task_manager.app_data_sel | SEG_DPL3; // 数据段选择子, 3级特权级 
+    code_sel = task_manager.app_code_sel | SEG_CPL3; // 代码段选择子, 3级特权级 
+    data_sel = task_manager.app_data_sel | SEG_CPL3; // 数据段选择子, 3级特权级 
 
     task->tss.eip = entry;         // 任务入口地址
     task->tss.esp = task->tss.esp0 = esp; // 当前任务的栈顶指针, 因为程序运行在特权级0，所以esp0和esp1指向同一位置

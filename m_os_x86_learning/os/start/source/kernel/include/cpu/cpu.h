@@ -63,6 +63,9 @@ void cpu_init(void);
 #define SEG_DPL0 (0 << 5)       // DPL 0, 最高权限
 #define SEG_DPL3 (3 << 5)       // DPL 3, 最低权限
 
+#define SEG_CPL0 (0 << 0)    // RPL 0, 最高权限
+#define SEG_CPL3 (3 << 0)    // RPL 3, 最低权限
+
 #define SEG_S_SYSTEM (0 << 4)   // set 0 则为 系统段
 #define SEG_S_NORMAL (1 << 4)   // set 1 则为 数据段 
 
