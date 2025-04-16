@@ -20,11 +20,16 @@ static int tss_init(task_t* task, uint32_t entry, uint32_t esp) {
     segment_desc_set(tss_sel, (uint32_t)&task->tss, sizeof(tss_t), SEG_P_PRESENT | SEG_DPL0 | SEG_TYPE_TSS);
 
     kernel_memset(&task->tss, 0, sizeof(tss_t));
+
+    int code_sel, data_sel;
+    code_sel = task_manager.app_code_sel | SEG_DPL3; // 代码段选择子, 3级特权级 
+    data_sel = task_manager.app_data_sel | SEG_DPL3; // 数据段选择子, 3级特权级 
+
     task->tss.eip = entry;         // 任务入口地址
     task->tss.esp = task->tss.esp0 = esp; // 当前任务的栈顶指针, 因为程序运行在特权级0，所以esp0和esp1指向同一位置
-    task->tss.ss = task->tss.ss0 = KERNEL_SELECTOR_DS;          // 任务的堆栈段选择子
-    task->tss.es = task->tss.ds = task->tss.fs = task->tss.gs = KERNEL_SELECTOR_DS;          // 任务的数据段选择子
-    task->tss.cs = KERNEL_SELECTOR_CS;           // 任务的代码段选择子
+    task->tss.ss = task->tss.ss0 = data_sel;          // 任务的堆栈段选择子
+    task->tss.es = task->tss.ds = task->tss.fs = task->tss.gs = data_sel;          // 任务的数据段选择子
+    task->tss.cs = code_sel;           // 任务的代码段选择子
     task->tss.eflags = EFLAGS_IF | EFLAGS_DEFAULT;
 
     uint32_t page_dir = memory_create_uvm(); // 创建一个新的页目录表, 物理地址
@@ -102,6 +107,18 @@ static void idle_task_entry(void) {
 }
 
 void task_manager_init(void) {
+    int sel = gdt_alloc_desc();
+    segment_desc_set(sel, 0x00000000, 0xFFFFFFFF, 
+        SEG_P_PRESENT | SEG_DPL3 | SEG_S_NORMAL | SEG_TYPE_DATA | SEG_TYPE_RW | SEG_D // 代码段选择子
+    );
+    task_manager.app_data_sel = sel;
+
+    sel = gdt_alloc_desc();
+    segment_desc_set(sel, 0x00000000, 0xFFFFFFFF, 
+        SEG_P_PRESENT | SEG_DPL3 | SEG_S_NORMAL | SEG_TYPE_CODE | SEG_TYPE_RW | SEG_D // 数据段选择子
+    );
+    task_manager.app_code_sel = sel;
+
     list_init(&task_manager.ready_list);
     list_init(&task_manager.task_list);
     task_manager.curr_task = (task_t*)0;
