@@ -111,6 +111,8 @@ void do_handler_general_protection(exception_frame_t *frame)
 
 void do_handler_page_fault(exception_frame_t *frame)
 {
+
+
     do_default_handler(frame, "page fault exception");
 }
 
