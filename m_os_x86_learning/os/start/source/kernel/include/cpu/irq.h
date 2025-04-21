@@ -49,6 +49,15 @@
 
 #define IRQ_PIC_START		0x20			// PIC中断起始号
 
+// cr2 寄存器中最低三位 (页面错误)
+#define ERR_PAGE_P (1 << 0)	// 1 - 页面错误
+#define ERR_PAGE_WR (1 << 1)	// 1 - 写错误
+#define ERR_PAGE_US (1 << 2)	// 1 - 用户态错误
+
+// 
+#define ERR_EXT (1 << 0) 
+#define ERR_IDT (1 << 1) // 判断异常是在 IDT 中还是在 GDT 中
+
 
 // 创建结构体, 用于指向传入的栈的指针
 typedef struct _exception_frame_t 
