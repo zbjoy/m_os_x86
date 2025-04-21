@@ -113,8 +113,19 @@ void move_to_first_task(void) {
     ASSERT(curr != 0);
 
     tss_t* tss = &(curr->tss); // 使用 eip 来 跳转 到 第一个任务的入口地址
+    // __asm__ __volatile__(
+    //     "jmp *%[ip]"::[ip]"r"(tss->eip)
+    // );
+
     __asm__ __volatile__(
-        "jmp *%[ip]"::[ip]"r"(tss->eip)
+        "push %[ss]\n\t" // 将 ss 压入栈中, 这里的 ss 是指向当前任务的栈段的指针
+        "push %[esp]\n\t"
+        "push %[eflags]\n\t"
+        "push %[cs]\n\t"
+        "push %[eip]\n\t"
+        "iret"::[ss]"r"(tss->ss), [esp]"r"(tss->esp), 
+        [eflags]"r"(tss->eflags), [cs]"r"(tss->cs),
+        [eip]"r"(tss->eip)
     );
 }
 
