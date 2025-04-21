@@ -9,10 +9,20 @@
 static gate_desc_t idt_table[IDT_TABLE_NR];
 
 static void dump_core_regs (exception_frame_t * frame) {
+    // 打印异常发生时的栈指针
+    uint32_t ss, esp;
+    if (frame->cs & 0x3) {
+        ss = frame->ss3;
+        esp = frame->esp3;
+    } else {
+        ss = frame->ds;
+        esp = frame->esp;
+    }
+
     // 打印CPU寄存器相关内容
     log_printf("IRQ: %d, error code: %d.", frame->num, frame->error_code);
     log_printf("CS: %d\nDS: %d\nES: %d\nSS: %d\nFS:%d\nGS:%d",
-               frame->cs, frame->ds, frame->es, frame->ds, frame->fs, frame->gs
+               frame->cs, frame->ds, frame->es, ss, frame->fs, frame->gs
     );
     log_printf("EAX:0x%x\n"
                 "EBX:0x%x\n"
@@ -23,7 +33,7 @@ static void dump_core_regs (exception_frame_t * frame) {
                 "EBP:0x%x\n"
                 "ESP:0x%x\n",
                frame->eax, frame->ebx, frame->ecx, frame->edx,
-               frame->edi, frame->esi, frame->ebp, frame->esp);
+               frame->edi, frame->esi, frame->ebp, esp);
     log_printf("EIP:0x%x\nEFLAGS:0x%x\n", frame->eip, frame->eflags);
 }
 
