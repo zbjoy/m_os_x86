@@ -108,25 +108,22 @@ void do_handler_general_protection(exception_frame_t *frame)
 {
     log_printf("-------");
     log_printf("GP fault.");
-    
+
+
     if (frame->error_code & ERR_EXT) {
         log_printf("The exception occurred during delivery delivery of an event external to the program: 0x%x", read_cr2());
     } else {
         log_printf("the exception occurred during delivery of a software intrrupt: 0x%x", read_cr2());
     }
 
-    if (frame->error_code & ERR_PAGE_WR) {
-        log_printf("The  access causing the fault was a write: 0x%x", read_cr2());
+    if (frame->error_code & ERR_IDT) {
+        log_printf("The index portion of the error code refers to a gate descripter in the IDT: 0x%x", read_cr2());
     } else {
-        log_printf("The access causing the fault was a read: 0x%x", read_cr2());
+        log_printf("The index refers to a descripter in the GDT: 0x%x", read_cr2());
     }
 
-    if (frame->error_code & ERR_PAGE_US) {
-        log_printf("A user-mode access caused the fault: 0x%x", read_cr2());
-    } else {
-        log_printf("A supervisor-mode access caused the fault: 0x%x", read_cr2());
-    }
-
+    // 将索引的错误打印出来
+    log_printf("selector index: %d", frame->error_code & 0xFFF8);
 
     // do_default_handler(frame, "page fault exception");
     dump_core_regs(frame);
@@ -142,21 +139,28 @@ void do_handler_page_fault(exception_frame_t *frame)
 {
     log_printf("-------");
     log_printf("Page fault.");
-    
-    if (frame->error_code & ERR_PAGE_P) {
+
+
+    if (frame->error_code & ERR_PAGE_P)
+    {
         log_printf("The fault was caused by a page-level protection violation: 0x%x", read_cr2());
-    } else {
+    }
+    else
+    {
         log_printf("The fault was caused by a non-present page: 0x%x", read_cr2());
     }
 
-    if (frame->error_code & ERR_IDT) {
-        log_printf("The index portion of the error code refers to a gate descripter in the IDT: 0x%x", read_cr2());
+    if (frame->error_code & ERR_PAGE_WR) {
+        log_printf("The  access causing the fault was a write: 0x%x", read_cr2());
     } else {
-        log_printf("The index refers to a descripter in the GDT: 0x%x", read_cr2());
+        log_printf("The access causing the fault was a read: 0x%x", read_cr2());
     }
 
-    // 将索引的错误打印出来
-    log_printf("selector index: %d", frame->error_code & 0xFFF8);
+    if (frame->error_code & ERR_PAGE_US) {
+        log_printf("A user-mode access caused the fault: 0x%x", read_cr2());
+    } else {
+        log_printf("A supervisor-mode access caused the fault: 0x%x", read_cr2());
+    }
 
     // do_default_handler(frame, "page fault exception");
     dump_core_regs(frame);
