@@ -11,7 +11,7 @@
 static uint32_t idel_task_stack[IDLE_TASK_SIZE];
 static task_manager_t task_manager;
 
-static int tss_init(task_t* task, uint32_t entry, uint32_t esp) {
+static int tss_init(task_t* task, int flag, uint32_t entry, uint32_t esp) {
     int tss_sel = gdt_alloc_desc();
     if (tss_sel < 0) {
         log_printf("alloc tss desc failed\n");
@@ -49,10 +49,10 @@ static int tss_init(task_t* task, uint32_t entry, uint32_t esp) {
 
 
 
-int task_init(task_t *task, const char* name, uint32_t entry, uint32_t esp) {
+int task_init(task_t *task, const char* name, int flag, uint32_t entry, uint32_t esp) {
     ASSERT(task != (task_t*)0);
 
-    tss_init(task, entry, esp);
+    tss_init(task, flag, entry, esp);
     kernel_strncpy(task->name, name, TASK_NAME_SIZR);
     task->state = TASK_CREATED;
     // uint32_t* pesp = (uint32_t*)esp;
