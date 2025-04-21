@@ -22,8 +22,14 @@ static int tss_init(task_t* task, int flag, uint32_t entry, uint32_t esp) {
     kernel_memset(&task->tss, 0, sizeof(tss_t));
 
     int code_sel, data_sel;
-    code_sel = task_manager.app_code_sel | SEG_CPL3; // 代码段选择子, 3级特权级 
-    data_sel = task_manager.app_data_sel | SEG_CPL3; // 数据段选择子, 3级特权级 
+    // 判断 flag 是否是系统任务
+    if (flag & TASK_FLAGS_SYSTEM) {
+        code_sel = KERNEL_SELECTOR_CS; // 代码段选择子, 0级特权级 
+        data_sel = KERNEL_SELECTOR_DS; // 数据段选择子, 0级特权级 
+    } else {
+        code_sel = task_manager.app_code_sel | SEG_CPL3; // 代码段选择子, 3级特权级
+        data_sel = task_manager.app_data_sel | SEG_CPL3; // 数据段选择子, 3级特权级
+    }
 
     task->tss.eip = entry;         // 任务入口地址
     task->tss.esp = task->tss.esp0 = esp; // 当前任务的栈顶指针, 因为程序运行在特权级0，所以esp0和esp1指向同一位置
@@ -126,6 +132,7 @@ void task_manager_init(void) {
 
     task_init(&task_manager.idle_task,
              "idle_task",
+              TASK_FLAGS_SYSTEM,
               (uint32_t)idle_task_entry,
               (uint32_t)idel_task_stack + IDLE_TASK_SIZE
     );
@@ -143,7 +150,7 @@ void task_first_init(void) {
     uint32_t first_start = (uint32_t)first_task_entry;
 
     // task_init(&task_manager.first_task, "first task", 0, 0); // 传入当前的地址
-    task_init(&task_manager.first_task, "first task", first_start, 0); // 改成传入 first_task_entry 地址
+    task_init(&task_manager.first_task, "first task", 0, first_start, 0); // 改成传入 first_task_entry 地址
 
     write_tr(task_manager.first_task.tss_sel);
     task_manager.curr_task = &task_manager.first_task;
