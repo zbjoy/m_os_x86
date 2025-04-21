@@ -149,22 +149,18 @@ void do_handler_page_fault(exception_frame_t *frame)
         log_printf("The fault was caused by a non-present page: 0x%x", read_cr2());
     }
 
-    if (frame->error_code & ERR_PAGE_WR) {
-        log_printf("The  access causing the fault was a write: 0x%x", read_cr2());
+    if (frame->error_code & ERR_IDT) {
+        log_printf("The index portion of the error code refers to a gate descripter in the IDT: 0x%x", read_cr2());
     } else {
-        log_printf("The access causing the fault was a read: 0x%x", read_cr2());
+        log_printf("The index refers to a descripter in the GDT: 0x%x", read_cr2());
     }
 
-    if (frame->error_code & ERR_PAGE_US) {
-        log_printf("A user-mode access caused the fault: 0x%x", read_cr2());
-    } else {
-        log_printf("A supervisor-mode access caused the fault: 0x%x", read_cr2());
-    }
-
+    // 将索引的错误打印出来
+    log_printf("selector index: %d", frame->error_code & 0xFFF8);
 
     // do_default_handler(frame, "page fault exception");
     dump_core_regs(frame);
-    // TODO: 如果是普通进程发生的页错误，需要杀死进程并切换到其他进程
+    // TODO: 如果是普通进程发生的错误，需要杀死进程并切换到其他进程
     while (1) {
         hlt();
     }
