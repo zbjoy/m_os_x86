@@ -14,6 +14,7 @@ static void addr_alloc_init(addr_alloc_t* alloc, uint8_t* bits, uint32_t start, 
     bitmap_init(&alloc->bitmap, bits, alloc->size / page_size, 0);     // 初始化位图, 0-清空
 }
 
+// 对 page 进行分配和回收
 static uint32_t addr_alloc_page(addr_alloc_t* alloc, int page_count) {
     // uint32_t addr = 0;
 

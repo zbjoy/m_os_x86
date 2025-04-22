@@ -72,7 +72,7 @@ static void entry_protect_mode(void)
     cli();
 
     uint8_t v = inb(0x92);  // 读取 92 端口的状态
-    outb(0x92, v | 0x2); 
+    outb(0x92, v | 0x2);  // 设置 92 端口的状态, 使能A20地址线
 
     lgdt((uint32_t)gdt_table, sizeof(gdt_table)); // 设置 GDT
 

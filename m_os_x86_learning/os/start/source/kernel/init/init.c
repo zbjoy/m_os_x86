@@ -108,6 +108,7 @@ void list_test() {
     }
 }
 
+// 跳转到 first_task, 并且将任务特权级从0 切换到3(通过联汇编结合 iret 指令实现)
 void move_to_first_task(void) {
     task_t* curr = task_current();
     ASSERT(curr != 0);
@@ -117,6 +118,7 @@ void move_to_first_task(void) {
     //     "jmp *%[ip]"::[ip]"r"(tss->eip)
     // );
 
+    // 对于从特权级0 切换到 特权级3, 通过 iret 指令来实现, 将 ss, esp, eflags, cs, eip 压入栈中, 然后 iret 指令从栈中弹出并恢复现场
     __asm__ __volatile__(
         "push %[ss]\n\t" // 将 ss 压入栈中, 这里的 ss 是指向当前任务的栈段的指针
         "push %[esp]\n\t"
