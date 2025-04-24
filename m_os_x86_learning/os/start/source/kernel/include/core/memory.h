@@ -35,4 +35,8 @@ void memory_init(boot_info_t* boot_info);
 uint32_t memory_create_uvm(void); // 创建一个页表, 返回页目录表的物理地址
 int memory_alloc_page_for(uint32_t addr, uint32_t size, uint32_t perm); // 为指定进程分配内存
 
+uint32_t memory_alloc_page(void); // 分配一个页物理内存, 返回物理地址
+void memory_free_page(uint32_t addr); // 释放一个页物理内存
+
+
 #endif

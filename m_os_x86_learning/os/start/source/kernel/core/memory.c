@@ -219,3 +219,24 @@ int memory_alloc_for_page_dir(uint32_t page_dir, uint32_t vaddr, uint32_t size, 
 int memory_alloc_page_for(uint32_t addr, uint32_t size, uint32_t perm) { // 为指定进程分配内存
     return memory_alloc_for_page_dir(task_current()->tss.cr3, addr, size, perm); // 为指定进程页表分配内存
 }
+
+uint32_t memory_alloc_page(void) { // 分配一个页物理内存, 返回物理地址
+    uint32_t addr = addr_alloc_page(&paddr_alloc, 1); // 分配一个页物理内存
+    return addr; // 返回物理地址
+}
+
+static pde_t* curr_page_dir(void) { // 获取当前进程的页目录表
+    return (pde_t*)(task_current()->tss.cr3); // 返回当前进程的页目录表
+}
+
+void memory_free_page(uint32_t addr) { // 释放一个页物理内存 
+    if (addr < MEMORY_TASK_BASE) { // 说明是 进程使用的 起始地址, 即通过函数 memory_alloc_page 分配的
+        addr_free_page(&paddr_alloc, addr, 1); // 释放分配的页物理内存
+    } else { // 说明是 内核使用的 起始地址, 即通过函数 memory_create_uvm 分配的
+        pte_t* pte = find_pte(curr_page_dir(), addr, 0); // 找到虚拟地址对应的页表项, 不分配表项
+        ASSERT((pte != (pte_t*)0) && (pte->present)); // 确保该页表项存在
+
+        addr_free_page(&paddr_alloc, pte_paddr(pte), 1); // 释放分配的页物理内存
+        pte->v = 0; // 清空页表项, 让它失效
+    }
+}
