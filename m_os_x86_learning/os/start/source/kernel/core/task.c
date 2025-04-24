@@ -150,7 +150,7 @@ void task_first_init(void) {
     uint32_t first_start = (uint32_t)first_task_entry;
 
     // task_init(&task_manager.first_task, "first task", 0, 0); // 传入当前的地址
-    task_init(&task_manager.first_task, "first task", 0, first_start, 0); // 改成传入 first_task_entry 地址
+    task_init(&task_manager.first_task, "first task", 0, first_start, first_start + alloc_size); // 改成传入 first_task_entry 地址
 
     write_tr(task_manager.first_task.tss_sel);
     task_manager.curr_task = &task_manager.first_task;
