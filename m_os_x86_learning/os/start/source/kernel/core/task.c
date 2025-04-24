@@ -21,6 +21,11 @@ static int tss_init(task_t* task, int flag, uint32_t entry, uint32_t esp) {
 
     kernel_memset(&task->tss, 0, sizeof(tss_t));
 
+    uint32_t kernel_stack = memory_alloc_page(); // 分配内核栈, 4KB
+    if (kernel_stack == 0) {
+        goto task_init_failed; // 分配失败, 释放 tss_sel
+    }
+
     int code_sel, data_sel;
     // 判断 flag 是否是系统任务
     if (flag & TASK_FLAGS_SYSTEM) {
@@ -32,7 +37,8 @@ static int tss_init(task_t* task, int flag, uint32_t entry, uint32_t esp) {
     }
 
     task->tss.eip = entry;         // 任务入口地址
-    task->tss.esp = task->tss.esp0 = esp; // 当前任务的栈顶指针, 因为程序运行在特权级0，所以esp0和esp1指向同一位置
+    task->tss.esp = esp;
+    task->tss.esp0 = kernel_stack + MEM_PAGE_SIZE; // 当前任务的栈顶指针, 因为程序运行在特权级0，所以esp0和esp1指向同一位置
     task->tss.ss = data_sel; // 任务的堆栈段选择子
     task->tss.ss0 = KERNEL_SELECTOR_DS;          // 内核数据段选择子
     task->tss.es = task->tss.ds = task->tss.fs = task->tss.gs = data_sel;          // 任务的数据段选择子
@@ -41,8 +47,8 @@ static int tss_init(task_t* task, int flag, uint32_t entry, uint32_t esp) {
 
     uint32_t page_dir = memory_create_uvm(); // 创建一个新的页目录表, 物理地址
     if (page_dir == 0) {
-        gdt_free_sel(tss_sel); // 释放分配的选择子
-        return -1;
+        goto task_init_failed; // 分配失败,TODO: 释放 tss_sel
+        // return -1;
     }
     task->tss.cr3 = page_dir; // 设置任务的页目录表地址
 
@@ -51,6 +57,12 @@ static int tss_init(task_t* task, int flag, uint32_t entry, uint32_t esp) {
     task->tss_sel = tss_sel;
 
     return 0;
+task_init_failed:
+    gdt_free_sel(tss_sel); // 释放分配的选择子
+    if (kernel_stack) { // 如果分配了内核栈, 释放掉
+        memory_free_page(kernel_stack); // 释放分配的内核栈
+    }
+    return -1;
 }
 
 
