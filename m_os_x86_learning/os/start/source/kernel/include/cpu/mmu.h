@@ -13,6 +13,7 @@
 #define PTE_W (1 << 1) // 可写位置, 页表项可写
 
 #define PDE_U (1 << 2) // 用户态位置, 页目录项用户态
+#define PTE_U (1 << 2) // 用户态位置, 页表项用户态
 
 typedef union _pde_t { // page directory entry (第一个表, 页目录表)
     uint32_t v;

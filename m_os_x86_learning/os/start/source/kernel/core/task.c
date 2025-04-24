@@ -158,7 +158,7 @@ void task_first_init(void) {
     // 将页表切换到 first_task 的页表
     mmu_set_page_dir(task_manager.first_task.tss.cr3); // 设置页目录表
 
-    memory_alloc_page_for(first_start, alloc_size, PTE_P | PTE_W);
+    memory_alloc_page_for(first_start, alloc_size, PTE_P | PTE_W | PTE_U);
     kernel_memcpy((void*)first_start, (void*)s_first_task, copy_size); // 拷贝到分配的内存中去
 }
 

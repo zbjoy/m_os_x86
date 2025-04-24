@@ -12,6 +12,7 @@
 #define MEM_PAGE_SIZE (4096) // 4KB
 #define MEMORY_TASK_BASE (0x80000000) // 2GB (进程虚拟地址的起始位置)
 
+
 typedef struct _addr_alloc_t {
     mutex_t mutex;
     bitmap_t bitmap;
