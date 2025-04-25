@@ -72,6 +72,7 @@ void gdt_free_sel(int sel) {
 
 
 
+// TODO: 添加调用门描述符的设置函数
 void init_gdt(void)
 {
     // 清空 gdt 表
