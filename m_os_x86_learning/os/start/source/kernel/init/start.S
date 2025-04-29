@@ -121,3 +121,6 @@ simple_switch:
     // ret 指令会从当前的栈指针中弹出返回地址, 并跳转到该地址, 而在 source/kernel/core/task.c 中的 task_init 函数中有设置 *(--pesp) = entry, 所以这里的 ret 指令会返回到 task_init 函数中, 并设置好新的栈, 然后调用 task_start 函数
     ret // 对 栈 进行设置 使返回到 to 的函数中
 
+    .global execption_handler_syscall
+exception_handler_syscall:
+    ret
