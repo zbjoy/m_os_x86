@@ -22,6 +22,7 @@ typedef struct _segment_desc_t {
     uint8_t base31_24;
 } segment_desc_t;
 
+// 调用门描述符
 typedef struct _gate_desc_t {
     uint16_t offset15_0;
     uint16_t selector;

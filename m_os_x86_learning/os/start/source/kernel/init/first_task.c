@@ -1,5 +1,6 @@
 #include "kernel/include/core/task.h"
 #include "kernel/include/tools/log.h"
+#include "applib/lib_syscall.h"
 
 int first_task_main(void) {
     for (;;) {

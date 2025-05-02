@@ -1,6 +1,10 @@
 #ifndef LIB_SYSCALL_H
 #define LIB_SYSCALL_H
 
+#include "comm/types.h"
+#include "kernel/include/core/syscall.h"
+#include "kernel/include/os_cfg.h"
+
 typedef struct _syscall_args_t {
     int id;
     int arg0;
@@ -12,7 +16,12 @@ typedef struct _syscall_args_t {
 #define SYS_sleep 0
 
 static inline int sys_call(syscall_args_t *args) {
-    
+    // TODO: 通过内联汇编实现系统调用
+    uint32_t addr[] = {0, SELECTOR_SYSCALL | 0};
+
+    __asm__ __volatile__(
+        "lcalll *(%[a])"::[a]"r"(addr) // 这里的 addr 是一个指针，指向一个数组 
+    );
 }
 
 static inline void ms_sleep(int ms) {
