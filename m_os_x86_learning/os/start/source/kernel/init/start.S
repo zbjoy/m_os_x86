@@ -123,4 +123,4 @@ simple_switch:
 
     .global exception_handler_syscall
 exception_handler_syscall:
-    ret
+    retf $(5 * 4) // 直接返回, 这里不需要处理异常, 因为 syscall 是一个系统调用, 不需要处理异常 ret 只会
