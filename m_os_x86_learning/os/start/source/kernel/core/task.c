@@ -100,6 +100,7 @@ int task_init(task_t *task, const char* name, int flag, uint32_t entry, uint32_t
 
     // 属于临界区, 必须使用临界区保护
     irq_state_t state = irq_enter_protection();
+    task->pid = (uint32_t)task; // 任务的 PID, 这里使用任务的地址作为 PID, 方便后续查找
 
     task_set_ready(task); // 将任务设置到就绪队列
 
