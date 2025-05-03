@@ -22,6 +22,8 @@ typedef struct _task_t {
         TASK_WAITTING, // 进程在等待某个事件, eg: 等待IO完成, 等待磁盘空闲
     } state;
 
+    int pid; // 进程ID
+
     int time_ticks; // 进程运行的时间片
     int slice_ticks; // 进程的时间片长度
     int sleep_ticks; // 进程睡眠的时间
@@ -69,5 +71,6 @@ void task_time_tick(void); // 检查 sleep_list, 如果时间片耗尽, 则将�
 void task_set_sleep(task_t* task, uint32_t ticks); // 设置进程睡眠状态, 并将进程放到 sleep_list
 void task_set_wakeup(task_t* task); // 唤醒进程, 将进程从 sleep_list 移到 ready_list
 void sys_sleep(uint32_t ms); // 进程睡眠
+int sys_getpid(void); // 获取进程ID
 
 #endif

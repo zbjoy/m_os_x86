@@ -294,3 +294,8 @@ void sys_sleep(uint32_t ms) {
     irq_leave_protection(state);
 }
 
+int sys_getpid(void) {
+    task_t* task = task_current();
+    return task->pid;
+}
+

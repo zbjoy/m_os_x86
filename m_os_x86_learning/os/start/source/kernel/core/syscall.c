@@ -6,12 +6,14 @@ typedef int (*sys_handler_t)(uint32_t arg0, uint32_t arg1, uint32_t arg2, uint32
 
 static const sys_handler_t sys_table[] = {
     [SYS_sleep] = (sys_handler_t)sys_sleep,
+    [SYS_getpid] = (sys_handler_t)sys_getpid,
 };
 void do_handler_syscall(syscall_frame_t* frame) {
     if (frame->func_id < sizeof(sys_table) / sizeof(sys_table[0])) {
         sys_handler_t handler = sys_table[frame->func_id];
         if (handler) {
             int ret = handler(frame->arg0, frame->arg1, frame->arg2, frame->arg3);
+            frame->eax = ret; // 将返回值放到 eax 中
             return;
         } 
     }

@@ -4,6 +4,7 @@
 #include "comm/types.h"
 
 #define SYS_sleep 0 // 系统调用的 ID
+#define SYS_getpid 1 // 系统调用的 ID
 
 #define SYSCALL_PARAM_COUNT 5
 

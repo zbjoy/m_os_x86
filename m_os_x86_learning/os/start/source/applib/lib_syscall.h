@@ -42,5 +42,11 @@ static inline void ms_sleep(int ms) {
     sys_call(&args); // 参数的数量
 }
 
+static inline int getpid(void) {
+    syscall_args_t args;
+    args.id = SYS_getpid;
+
+    return sys_call(&args); // 参数的数量
+}
 
 #endif
