@@ -18,6 +18,7 @@ typedef struct _syscall_args_t {
 static inline int sys_call(syscall_args_t *args) {
     // TODO: 通过内联汇编实现系统调用
     uint32_t addr[] = {0, SELECTOR_SYSCALL | 0};
+    int ret;
 
     __asm__ __volatile__(
         "push %[arg3]\n\t"
@@ -25,9 +26,12 @@ static inline int sys_call(syscall_args_t *args) {
         "push %[arg1]\n\t"
         "push %[arg0]\n\t"
         "push %[id]\n\t"
-        "lcalll *(%[a])"::
+        "lcalll *(%[a])"
+        :"=a"(ret):
         [arg3]"r"(args->arg3), [arg2]"r"(args->arg2), [arg1]"r"(args->arg1), [arg0]"r"(args->arg0), [id]"r"(args->id), [a]"r"(addr) // 这里的 addr 是一个指针，指向一个数组 
     );
+
+    return ret;
 }
 
 static inline void ms_sleep(int ms) {
