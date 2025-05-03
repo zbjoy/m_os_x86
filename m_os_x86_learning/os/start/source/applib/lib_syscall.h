@@ -53,4 +53,13 @@ static inline int getpid(void) {
     return sys_call(&args); // 参数的数量
 }
 
+static inline void print_msg(const char* fmt, int arg) {
+    syscall_args_t args;
+    args.id = SYS_printmsg;
+    args.arg0 = (int)fmt; // 将参数转换为整数类型
+    args.arg1 = arg; // 将参数转换为整数类型
+
+    sys_call(&args); // 参数的数量
+}
+
 #endif
