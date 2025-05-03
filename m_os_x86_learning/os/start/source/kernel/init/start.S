@@ -122,5 +122,25 @@ simple_switch:
     ret // 对 栈 进行设置 使返回到 to 的函数中
 
     .global exception_handler_syscall
+    .extern do_handler_syscall  // 声明 do_handler_syscall 函数, 该函数在 kernel/core/syscall.c 中实现, 用于处理系统调用
 exception_handler_syscall:
-    retf $(5 * 4) // 直接返回, 这里不需要处理异常, 因为 syscall 是一个系统调用, 不需要处理异常 ret 只会
+    pusha
+    push %ds
+    push %es
+    push %fs
+    push %gs
+    pushf // 保存标志寄存器
+
+    mov %esp, %eax // 将当前栈指针保存到 eax 中
+    push %eax // 将当前栈指针压入栈中, 作为 syscall 的参数
+    call do_handler_syscall // 调用具体的系统调用处理函数
+    add $4, %esp // 弹出 syscall 的参数, 这里是将当前栈指针弹出, 使得栈指针指向 syscall 的返回地址
+
+    popf // 弹出标志寄存器, 这里是为了清除中断标志位, 使得在处理系统调用时不会被中断打断
+    pop %gs
+    pop %fs
+    pop %es
+    pop %ds
+    popa
+
+    retf $(5 * 4) // 直接返回, 这里不需要处理异常, 因为 syscall 是一个系统调用, 不需要处理异常 ret 只会返回到系统调用的返回地址, 并继续执行系统调用的返回地址

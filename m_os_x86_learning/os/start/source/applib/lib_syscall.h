@@ -13,7 +13,7 @@ typedef struct _syscall_args_t {
     int arg3;
 } syscall_args_t;
 
-#define SYS_sleep 0
+// #define SYS_sleep 0 // 放在了 syscall.h 中
 
 static inline int sys_call(syscall_args_t *args) {
     // TODO: 通过内联汇编实现系统调用
