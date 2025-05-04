@@ -13,4 +13,6 @@
 
 #define OS_VERSION "1.0.0"
 
+#define TASK_NR 128 // 任务的数量, 128个任务
+
 #endif /* OS_CFG_H */

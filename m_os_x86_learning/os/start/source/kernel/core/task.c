@@ -10,6 +10,8 @@
 
 static uint32_t idel_task_stack[IDLE_TASK_SIZE];
 static task_manager_t task_manager;
+static task_t task_table[TASK_NR]; // 任务表, 用于存放所有的任务
+static mutex_t task_table_mutex; // 任务表的互斥锁
 
 static int tss_init(task_t* task, int flag, uint32_t entry, uint32_t esp) {
     int tss_sel = gdt_alloc_desc();
@@ -127,6 +129,9 @@ static void idle_task_entry(void) {
 }
 
 void task_manager_init(void) {
+    kernel_memset(task_table, 0, sizeof(task_table)); // 清空任务表
+    mutex_init(&task_table_mutex); // 初始化任务表的互斥锁
+
     int sel = gdt_alloc_desc();
     segment_desc_set(sel, 0x00000000, 0xFFFFFFFF, 
         SEG_P_PRESENT | SEG_DPL3 | SEG_S_NORMAL | SEG_TYPE_DATA | SEG_TYPE_RW | SEG_D // 代码段选择子
