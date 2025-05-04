@@ -20,6 +20,14 @@ static inline int sys_call(syscall_args_t *args) {
     uint32_t addr[] = {0, SELECTOR_SYSCALL | 0};
     int ret;
 
+    // // 通过调用门实现系统调用 (使用 int $0x80 指令)
+    // __asm__ __volatile__(
+    //     "int $0x80"
+    //     :"=a"(ret)
+    //     :"S"(args->arg3), "d"(args->arg2), "c"(args->arg1),
+    //     "b"(args->arg0), "a"(args->id)
+    // );
+
     __asm__ __volatile__(
         "push %[arg3]\n\t"
         "push %[arg2]\n\t"
