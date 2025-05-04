@@ -118,7 +118,7 @@ int task_init(task_t *task, const char* name, int flag, uint32_t entry, uint32_t
 }
 
 void task_uninit(task_t* task) {
-    if (task->tss) {
+    if (task->tss_sel) {
         gdt_free_sel(task->tss_sel); // 释放分配的选择子
     }
 
@@ -306,6 +306,28 @@ void task_set_sleep(task_t* task, uint32_t ticks) {
 void task_set_wakeup(task_t* task) {
     list_remove(&task_manager.sleep_list, &task->run_node);
 }
+
+static task_t* alloc_task(void) {
+    task_t* task = (task_t*)0;
+
+    mutex_lock(&task_table_mutex); // 进入临界区
+    for (int i = 0; i < TASK_NR; i++) {
+        task_t* curr = task_table + i;
+        if (curr->name[0] == '\0') {
+            task = curr;
+            break;
+        }
+    }
+    mutex_unlock(&task_table_mutex); // 退出临界区
+
+    return task;
+}
+
+static void free_task(task_t* task) {
+    mutex_lock(&task_table_mutex); // 进入临界区
+    task->name[0] = '\0'; // 清空任务名称, 释放任务
+    mutex_unlock(&task_table_mutex); // 退出临界区
+}
 void sys_sleep(uint32_t ms) {
     irq_state_t state = irq_enter_protection();
 
@@ -333,7 +355,7 @@ int sys_fork(void) {
 
     syscall_frame_t* frame = (syscall_frame_t*)(parent_task->tss.esp0 - sizeof(syscall_frame_t)); // 获取当前任务的栈指针
 
-    int err = task_init(child_task, parent_task->name, 0, frame->eip, frame->esp); // 初始化子任务
+    int err = task_init(child_task, parent_task->name, 0, frame->eip, frame->esp + sizeof(uint32_t) * SYSCALL_PARAM_COUNT); // 初始化子任务
     if (err < 0) {
         goto fork_failed;
     }
@@ -368,25 +390,3 @@ fork_failed:
     return -1; // 创建子进程失败
 }
 
-
-static task_t* alloc_task(void) {
-    task_t* task = (task_t*)0;
-
-    mutex_lock(&task_table_mutex); // 进入临界区
-    for (int i = 0; i < TASK_NR; i++) {
-        task_t* curr = task_table + i;
-        if (curr->name[0] == '\0') {
-            task = curr;
-            break;
-        }
-    }
-    mutex_unlock(&task_table_mutex); // 退出临界区
-
-    return task;
-}
-
-static void free_task(task_t* task) {
-    mutex_lock(&task_table_mutex); // 进入临界区
-    task->name[0] = '\0'; // 清空任务名称, 释放任务
-    mutex_unlock(&task_table_mutex); // 退出临界区
-}
