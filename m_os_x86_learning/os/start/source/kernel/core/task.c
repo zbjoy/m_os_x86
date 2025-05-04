@@ -300,7 +300,7 @@ int sys_getpid(void) {
     return task->pid;
 }
 
-int sys_fork() {
-
+int sys_fork(void) {
+    return -1; // 创建子进程失败
 }
 
