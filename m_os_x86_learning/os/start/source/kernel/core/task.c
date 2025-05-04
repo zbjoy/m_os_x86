@@ -300,3 +300,7 @@ int sys_getpid(void) {
     return task->pid;
 }
 
+int sys_fork() {
+
+}
+

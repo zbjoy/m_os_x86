@@ -72,5 +72,6 @@ void task_set_sleep(task_t* task, uint32_t ticks); // 设置进程睡眠状态, 
 void task_set_wakeup(task_t* task); // 唤醒进程, 将进程从 sleep_list 移到 ready_list
 void sys_sleep(uint32_t ms); // 进程睡眠
 int sys_getpid(void); // 获取进程ID
+int sys_fork(void); // 进程创建
 
 #endif

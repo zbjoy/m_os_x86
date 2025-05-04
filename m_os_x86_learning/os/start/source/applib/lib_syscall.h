@@ -70,4 +70,10 @@ static inline void print_msg(const char* fmt, int arg) {
     sys_call(&args); // 参数的数量
 }
 
+static inline int fork() {
+    syscall_args_t args;
+    args.id = SYS_fork; // fork 的系统调用 ID
+    return sys_call(&args); // 参数的数量
+}
+
 #endif
