@@ -7,6 +7,7 @@
 #include "kernel/include/cpu/irq.h"
 #include "kernel/include/core/memory.h"
 #include "kernel/include/cpu/mmu.h"
+#include "kernel/include/core/syscall.h"
 
 static uint32_t idel_task_stack[IDLE_TASK_SIZE];
 static task_manager_t task_manager;
@@ -114,6 +115,22 @@ int task_init(task_t *task, const char* name, int flag, uint32_t entry, uint32_t
     irq_leave_protection(state);
     
     return 0;
+}
+
+void task_uninit(task_t* task) {
+    if (task->tss) {
+        gdt_free_sel(task->tss_sel); // 释放分配的选择子
+    }
+
+    if (task->tss.esp0) {
+        memory_free_page(task->tss.esp0 - MEM_PAGE_SIZE); // 释放分配的内核栈
+    }
+
+    if (task->tss.cr3) {
+
+    }
+
+    kernel_memset(task, 0, sizeof(task_t)); // 清空任务结构体
 }
 
 // 函数声明, 实现在 source/kernel/init/start.S 中
@@ -308,8 +325,49 @@ int sys_getpid(void) {
 }
 
 int sys_fork(void) {
+    task_t* parent_task = task_current();
+    task_t* child_task = alloc_task(); // 分配一个新的任务
+    if (child_task == (task_t*)0) {
+        goto fork_failed;
+    }
+
+    syscall_frame_t* frame = (syscall_frame_t*)(parent_task->tss.esp0 - sizeof(syscall_frame_t)); // 获取当前任务的栈指针
+
+    int err = task_init(child_task, parent_task->name, 0, frame->eip, frame->esp); // 初始化子任务
+    if (err < 0) {
+        goto fork_failed;
+    }
+
+    tss_t* tss = &child_task->tss;
+    tss->eax = 0; 
+    tss->ebx = frame->ebx;
+    tss->ecx = frame->ecx;
+    tss->edx = frame->edx;
+    tss->esi = frame->esi;
+    tss->edi = frame->edi;
+    tss->ebp = frame->ebp;
+
+    tss->cs = frame->cs; // 设置代码段选择子
+    tss->ds = frame->ds; // 设置数据段选择子
+    tss->es = frame->es; // 设置数据段选择子
+    tss->fs = frame->fs; // 设置数据段选择子
+    tss->gs = frame->gs; // 设置数据段选择子
+    tss->eflags = frame->eflags; // 设置标志寄存器
+
+    child_task->parent = parent_task; // 设置父进程
+
+    tss->cr3 = parent_task->tss.cr3; // 设置页目录表地址, 这里是父进程的页目录表地址
+
+    return child_task->pid; // 返回子进程的 PID
+    
+fork_failed:
+    if (child_task) {
+        task_uninit(child_task);
+        free_task(child_task);
+    }
     return -1; // 创建子进程失败
 }
+
 
 static task_t* alloc_task(void) {
     task_t* task = (task_t*)0;
