@@ -96,6 +96,8 @@ int task_init(task_t *task, const char* name, int flag, uint32_t entry, uint32_t
     task->slice_ticks = task->time_ticks;
     task->sleep_ticks = 0;
 
+    task->parent = (task_t*)0; // 父进程, 这里没有父进程, 所以设置为 0
+
     list_node_init(&task->run_node);
     list_node_init(&task->wait_node);
     list_node_init(&task->all_node);
@@ -309,3 +311,24 @@ int sys_fork(void) {
     return -1; // 创建子进程失败
 }
 
+static task_t* alloc_task(void) {
+    task_t* task = (task_t*)0;
+
+    mutex_lock(&task_table_mutex); // 进入临界区
+    for (int i = 0; i < TASK_NR; i++) {
+        task_t* curr = task_table + i;
+        if (curr->name[0] == '\0') {
+            task = curr;
+            break;
+        }
+    }
+    mutex_unlock(&task_table_mutex); // 退出临界区
+
+    return task;
+}
+
+static void free_task(task_t* task) {
+    mutex_lock(&task_table_mutex); // 进入临界区
+    task->name[0] = '\0'; // 清空任务名称, 释放任务
+    mutex_unlock(&task_table_mutex); // 退出临界区
+}

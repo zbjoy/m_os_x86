@@ -23,6 +23,7 @@ typedef struct _task_t {
     } state;
 
     int pid; // 进程ID
+    struct _task_t* parent; // 父进程
 
     int time_ticks; // 进程运行的时间片
     int slice_ticks; // 进程的时间片长度
