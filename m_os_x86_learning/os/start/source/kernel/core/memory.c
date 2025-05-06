@@ -240,3 +240,67 @@ void memory_free_page(uint32_t addr) { // 释放一个页物理内存
         pte->v = 0; // 清空页表项, 让它失效
     }
 }
+
+uint32_t memory_copy_uvm(uint32_t page_dir) {
+    uint32_t to_page_dir = memory_create_uvm(); // 创建一个新的页目录表, 物理地址
+    if (to_page_dir == 0) {
+        goto copy_uvm_failed; // 分配失败, 释放页目录表
+    }
+
+    uint32_t user_pde_start = pde_index(MEMORY_TASK_BASE); // 用户进程的页目录表起始地址
+    pde_t* pde = (pde_t*)page_dir + user_pde_start; // 找到用户进程的页目录表
+    for (int i = user_pde_start; i < PDE_CNT; i++) {
+        if (!pde->present) { // 不存在的页目录表项
+            continue;
+        }
+
+        pte_t* pte = (pte_t*)pde_paddr(pde);
+        for (int j = 0; j < PTE_CNT; j++, pte++) {
+            if (!pte->present) { // 不存在的页表项
+                continue;
+            }
+
+            uint32_t page = addr_alloc_page(&paddr_alloc, 1); // 分配一个页物理内存
+            if (page == 0) {
+                goto copy_uvm_failed; // 分配失败, 释放页目录表
+            }
+
+            uint32_t vaddr = (i << 22) | (j << 12); // 计算虚拟地址
+            int err = memory_create_map((pde_t*)to_page_dir, vaddr, page, 1, get_pte_perm(pte)); // & (PTE_W | PTE_U)); // 建立一个映射, 将 vaddr 的虚拟地址映射到 page 的物理地址, 页数为 1, 权限为 pte->v & (PTE_W | PTE_U)
+            if (err < 0) {
+                goto copy_uvm_failed; // 分配失败, 释放页目录表
+            }
+
+            kernel_memcpy((void*)page, (void*)vaddr, MEM_PAGE_SIZE); // 拷贝数据到新的页物理内存中去
+        }
+    }
+
+    return to_page_dir; // 复制成功, 返回新的页目录表的物理地址
+copy_uvm_failed:
+    if (to_page_dir) {
+        memory_destroy_uvm(to_page_dir); // 释放页目录表
+    }
+    return 0; // 复制失败, 返回空指针
+}
+
+void memory_destroy_uvm(uint32_t page_dir) {
+    uint32_t user_pde_start = pde_index(MEMORY_TASK_BASE); // 用户进程的页目录表起始地址
+    pde_t* pde = (pde_t*)page_dir + user_pde_start; // 找到用户进程的页目录表
+    for (int i = user_pde_start; i < PDE_CNT; i++, pde++) {
+        if (!pde->present) { // 不存在的页目录表项
+            continue;
+        }
+
+        pte_t* pte = (pte_t*)pde_paddr(pde);
+        for (int j = 0; j < PTE_CNT; j++, pte++) {
+            if (!pte->present) { // 不存在的页表项
+                continue;
+            }
+
+            addr_free_page(&paddr_alloc, pte_paddr(pte), 1); // 释放分配的页物理内存
+        }
+
+        addr_free_page(&paddr_alloc, (uint32_t)pde_paddr(pde), 1); // 释放分配的页目录表物理内存
+    }
+    addr_free_page(&paddr_alloc, page_dir, 1); // 释放分配的页目录表物理内存
+}

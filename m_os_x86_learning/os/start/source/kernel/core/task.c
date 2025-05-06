@@ -127,7 +127,7 @@ void task_uninit(task_t* task) {
     }
 
     if (task->tss.cr3) {
-
+        memory_destroy_uvm(task->tss.cr3); // 释放分配的页目录表
     }
 
     kernel_memset(task, 0, sizeof(task_t)); // 清空任务结构体
@@ -378,7 +378,12 @@ int sys_fork(void) {
 
     child_task->parent = parent_task; // 设置父进程
 
-    tss->cr3 = parent_task->tss.cr3; // 设置页目录表地址, 这里是父进程的页目录表地址
+    if (tss->cr3 = memory_copy_uvm(parent_task->tss.cr3) < 0) { // 复制父进程的页目录表
+        goto fork_failed; // 复制失败, 释放子任务
+    }
+
+    // 直接复制 父进程的tss.cr3页表, 会导致后面父进程因为和子进程栈是同一个导致互相破坏, 并且在后面父进程与子进程执行代码不一样时会导致修改同一个页表, 造成错误
+    // tss->cr3 = parent_task->tss.cr3; // 设置页目录表地址, 这里是父进程的页目录表地址
 
     return child_task->pid; // 返回子进程的 PID
     

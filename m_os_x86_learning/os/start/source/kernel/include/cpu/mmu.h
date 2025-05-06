@@ -5,6 +5,7 @@
 #include "comm/cpu_instr.h"
 
 #define PDE_CNT 1024 // 页目录表项数
+#define PTE_CNT 1024 // 页表项数
 
 #define PTE_P (1 << 0) // 存在位置, 页表项有效
 #define PDE_P (1 << 0) // 存在位置, 页目录项有效
@@ -74,6 +75,10 @@ static inline uint32_t pte_paddr(pte_t* pte) {
 // 设置页目录表地址
 static inline void mmu_set_page_dir(uint32_t paddr) {
     write_cr3(paddr);
+}
+
+static inline uint32_t get_pte_perm(pte_t* pte) {
+    return (pte->v & 0x3FF);
 }
 
 #endif
