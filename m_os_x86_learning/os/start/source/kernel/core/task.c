@@ -378,7 +378,7 @@ int sys_fork(void) {
 
     child_task->parent = parent_task; // 设置父进程
 
-    if (tss->cr3 = memory_copy_uvm(parent_task->tss.cr3) < 0) { // 复制父进程的页目录表
+    if ((tss->cr3 = memory_copy_uvm(parent_task->tss.cr3)) < 0) { // 复制父进程的页目录表
         goto fork_failed; // 复制失败, 释放子任务
     }
 
