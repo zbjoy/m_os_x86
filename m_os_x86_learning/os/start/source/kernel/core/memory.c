@@ -249,7 +249,7 @@ uint32_t memory_copy_uvm(uint32_t page_dir) {
 
     uint32_t user_pde_start = pde_index(MEMORY_TASK_BASE); // 用户进程的页目录表起始地址
     pde_t* pde = (pde_t*)page_dir + user_pde_start; // 找到用户进程的页目录表
-    for (int i = user_pde_start; i < PDE_CNT; i++) {
+    for (int i = user_pde_start; i < PDE_CNT; i++, pde++) {
         if (!pde->present) { // 不存在的页目录表项
             continue;
         }
