@@ -395,6 +395,11 @@ fork_failed:
     return -1; // 创建子进程失败
 }
 
+static uint32_t load_elf_file(task_t* task, char* name, uint32_t page_dir) {
+    // 这里需要实现加载 ELF 文件的功能, 目前先返回 0
+    return 0;
+}
+
 int sys_execve(char* name, char** argv, char** env) { // 执行进程
     task_t* task = task_current();
 
