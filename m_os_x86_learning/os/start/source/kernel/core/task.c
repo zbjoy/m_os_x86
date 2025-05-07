@@ -396,6 +396,33 @@ fork_failed:
 }
 
 int sys_execve(char* name, char** argv, char** env) { // 执行进程
+    task_t* task = task_current();
+
+    uint32_t old_page_dir = task->tss.cr3; // 保存旧的页目录表地址
+    uint32_t new_page_dir = memory_create_uvm(); // 创建一个新的页目录表, 物理地址
+    if (!new_page_dir) {
+        goto execve_failed; // 创建失败, 释放页目录表
+    }
+
+    uint32_t entry = load_elf_file(task, name, new_page_dir); // 加载 ELF 文件, 返回入口地址
+    if (entry == 0) {
+        goto execve_failed; // 加载失败, 释放页目录表
+    }
+
+    task->tss.cr3 = new_page_dir; // 设置页目录表地址
+    mmu_set_page_dir(new_page_dir); // 设置页目录表
+
+    memory_destroy_uvm(old_page_dir); // 释放旧的页目录表
+
+    return 0;
+
+execve_failed:
+    if (new_page_dir) {
+        task->tss.cr3 = old_page_dir; // 恢复旧的页目录表地址
+        mmu_set_page_dir(old_page_dir); // 设置页目录表
+
+        memory_destroy_uvm(new_page_dir); // 释放新的页目录表
+    }
     return -1;
 }
 
