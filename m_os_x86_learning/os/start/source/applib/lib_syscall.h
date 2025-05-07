@@ -76,4 +76,14 @@ static inline int fork() {
     return sys_call(&args); // 参数的数量
 }
 
+static inline int execve(const char* name, char* const* argv, char* const* env) {
+    syscall_args_t args;
+    args.id = SYS_execve;
+    args.arg0 = (int)name; // 将参数转换为整数类型
+    args.arg1 = (int)argv; // 将参数转换为整数类型
+    args.arg2 = (int)env; // 将参数转换为整数类型
+
+    return sys_call(&args); // 参数的数量
+}
+
 #endif

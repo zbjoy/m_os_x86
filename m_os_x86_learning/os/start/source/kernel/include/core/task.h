@@ -74,5 +74,6 @@ void task_set_wakeup(task_t* task); // 唤醒进程, 将进程从 sleep_list 移
 void sys_sleep(uint32_t ms); // 进程睡眠
 int sys_getpid(void); // 获取进程ID
 int sys_fork(void); // 进程创建
+int sys_execve(char* name, char** argv, char** env); // 执行进程
 
 #endif

@@ -395,3 +395,7 @@ fork_failed:
     return -1; // 创建子进程失败
 }
 
+int sys_execve(char* name, char** argv, char** env) { // 执行进程
+    return -1;
+}
+

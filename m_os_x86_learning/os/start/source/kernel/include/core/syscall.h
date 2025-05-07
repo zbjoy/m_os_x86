@@ -6,6 +6,7 @@
 #define SYS_sleep 0 // 系统调用的 ID
 #define SYS_getpid 1 // 系统调用的 ID
 #define SYS_fork 2 // 系统调用的 ID
+#define SYS_execve 3 // 系统调用的 ID
 #define SYS_printmsg 100 
 
 #define SYSCALL_PARAM_COUNT 5
