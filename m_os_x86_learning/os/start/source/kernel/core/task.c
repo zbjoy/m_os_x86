@@ -397,6 +397,35 @@ fork_failed:
     return -1; // 创建子进程失败
 }
 
+static int load_phdr(int file, Elf32_Phdr* phdr, uint32_t page_dir) {
+    // 分配内存
+    int err = memory_alloc_for_page_dir(page_dir, phdr->p_vaddr, phdr->p_memsz, PTE_P | PTE_U | PTE_W);
+    if (err < 0) {
+        log_printf("no memory, alloc memory for phdr failed.\n");
+        return -1;
+    }
+
+    if (sys_lseek(file, phdr->p_offset, 0) < 0) {
+        log_printf("read file failed, lseek failed.\n");
+        return -1;
+    }
+
+    uint32_t vaddr = phdr->p_vaddr;
+    uint32_t size = phdr->p_filesz;
+    while (size > 0) {
+        int curr_size = (size > MEM_PAGE_SIZE) ? MEM_PAGE_SIZE : size;
+        uint32_t paddr = memory_get_paddr(page_dir, vaddr);
+
+        if (sys_read(file, (char*)paddr, curr_size) < curr_size) {
+            log_printf("read file failed.");
+            return -1;
+        }
+
+        size -= curr_size;
+        vaddr += curr_size;
+    }
+}
+
 static uint32_t load_elf_file(task_t* task, char* name, uint32_t page_dir) {
     // 这里需要实现加载 ELF 文件的功能, 目前先返回 0
     Elf32_Ehdr elf_hdr; // ELF 头部
@@ -422,7 +451,7 @@ static uint32_t load_elf_file(task_t* task, char* name, uint32_t page_dir) {
     // TODO: 校验 ELF 文件的正确性
 
     uint32_t e_phoff = elf_hdr.e_phoff; // 程序头表偏移
-    for (int i = 0; i < elf_hdr.e_phnum; i++) {
+    for (int i = 0; i < elf_hdr.e_phnum; i++, e_phoff += elf_hdr.e_phentsize) {
         if (sys_lseek(file, e_phoff, 0) < 0) {
             log_printf("lseek failed.\n");
             goto load_failed;
