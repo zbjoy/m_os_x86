@@ -8,6 +8,8 @@
 #include "kernel/include/core/memory.h"
 #include "kernel/include/cpu/mmu.h"
 #include "kernel/include/core/syscall.h"
+#include "comm/elf.h"
+#include "kernel/include/fs/fs.h"
 
 static uint32_t idel_task_stack[IDLE_TASK_SIZE];
 static task_manager_t task_manager;
@@ -397,7 +399,62 @@ fork_failed:
 
 static uint32_t load_elf_file(task_t* task, char* name, uint32_t page_dir) {
     // 这里需要实现加载 ELF 文件的功能, 目前先返回 0
-    return 0;
+    Elf32_Ehdr elf_hdr; // ELF 头部
+    Elf32_Phdr elf_phdr; // ELF 程序头部
+
+    int file = sys_open(name, 0); // 打开 ELF 文件
+    if (file < 0) {
+        log_printf("open file  %s failed.\n", name);
+        goto load_failed;
+    }
+    
+    int cnt = sys_read(file, (char*)&elf_hdr, sizeof(elf_hdr));
+    if (cnt < sizeof(Elf32_Ehdr)) {
+        log_printf("elf hdr too small. size = %d\n", cnt);
+        goto load_failed;
+    }
+
+    if ((elf_hdr.e_ident[0] != 0x7F) || (elf_hdr.e_ident[1] != 'E') || (elf_hdr.e_ident[2] != 'L') || (elf_hdr.e_ident[3] != 'F')) {
+        log_printf("not a valid elf file.\n");
+        goto load_failed;
+    }
+
+    // TODO: 校验 ELF 文件的正确性
+
+    uint32_t e_phoff = elf_hdr.e_phoff; // 程序头表偏移
+    for (int i = 0; i < elf_hdr.e_phnum; i++) {
+        if (sys_lseek(file, e_phoff, 0) < 0) {
+            log_printf("lseek failed.\n");
+            goto load_failed;
+        }
+
+        cnt = sys_read(file, (char*)&elf_phdr, sizeof(elf_phdr)); // 读取程序头部
+        if (cnt < sizeof(Elf32_Phdr)) {
+            log_printf("elf phdr too small. size = %d\n", cnt);
+            goto load_failed;
+        }
+
+        if ((elf_phdr.p_type != PT_LOAD) || (elf_phdr.p_vaddr < MEMORY_TASK_BASE)) {
+            continue; // 跳过非加载段
+        }
+
+        int err = load_phdr(file, &elf_phdr, page_dir); // 加载程序头部
+        if (err < 0) {
+            log_printf("load phdr programe %d failed.\n", i);
+            goto load_failed;
+        }
+    }
+
+    sys_close(file); // 关闭文件
+    return elf_hdr.e_entry; // 返回入口地址
+
+load_failed:
+    if (file) {
+        sys_close(file); // 关闭文件
+    }
+
+
+    return 0; // 加载失败, 返回 0
 }
 
 int sys_execve(char* name, char** argv, char** env) { // 执行进程
