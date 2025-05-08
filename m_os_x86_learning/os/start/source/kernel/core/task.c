@@ -424,6 +424,8 @@ static int load_phdr(int file, Elf32_Phdr* phdr, uint32_t page_dir) {
         size -= curr_size;
         vaddr += curr_size;
     }
+
+    return 0;
 }
 
 static uint32_t load_elf_file(task_t* task, char* name, uint32_t page_dir) {
@@ -457,6 +459,7 @@ static uint32_t load_elf_file(task_t* task, char* name, uint32_t page_dir) {
             goto load_failed;
         }
 
+        // 读取 Program Header 0 (或者 Program Header 1...n)
         cnt = sys_read(file, (char*)&elf_phdr, sizeof(elf_phdr)); // 读取程序头部
         if (cnt < sizeof(Elf32_Phdr)) {
             log_printf("elf phdr too small. size = %d\n", cnt);
