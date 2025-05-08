@@ -41,6 +41,6 @@ void memory_free_page(uint32_t addr); // 释放一个页物理内存
 
 uint32_t memory_copy_uvm(uint32_t page_dir);
 void memory_destroy_uvm(uint32_t page_dir);
-
+uint32_t memory_get_paddr(uint32_t page_dir, uint32_t vaddr); // 返回 page_dir 页目录表中 vaddr 虚拟地址对应的物理地址
 
 #endif

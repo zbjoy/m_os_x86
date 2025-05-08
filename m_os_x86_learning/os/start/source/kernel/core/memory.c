@@ -304,3 +304,13 @@ void memory_destroy_uvm(uint32_t page_dir) {
     }
     addr_free_page(&paddr_alloc, page_dir, 1); // 释放分配的页目录表物理内存
 }
+
+
+uint32_t memory_get_paddr(uint32_t page_dir, uint32_t vaddr) { // 返回 page_dir 页目录表中 vaddr 虚拟地址对应的物理地址
+    pte_t* pte = find_pte((pde_t*)page_dir, vaddr, 0);
+    if (!pte) {
+        return 0;
+    }
+
+    return pte_paddr(pte) + (vaddr & (MEM_PAGE_SIZE - 1)); // 物理地址 = 页表项物理地址 + 偏移量
+}

@@ -1,6 +1,8 @@
 #include "kernel/include/fs/fs.h"
 #include "comm/types.h"
 #include "kernel/include/tools/klib.h"
+#include "comm/boot_info.h"
+#include "comm/cpu_instr.h"
 
 // #define TEMP_ADDR (8 * 1024 * 1024) // 8MB
 static uint8_t TEMP_ADDR[100 * 1024]; // 100KB
