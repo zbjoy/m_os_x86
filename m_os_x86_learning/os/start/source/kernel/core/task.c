@@ -109,7 +109,7 @@ int task_init(task_t *task, const char* name, int flag, uint32_t entry, uint32_t
     irq_state_t state = irq_enter_protection();
     task->pid = (uint32_t)task; // 任务的 PID, 这里使用任务的地址作为 PID, 方便后续查找
 
-    task_set_ready(task); // 将任务设置到就绪队列
+    // task_set_ready(task); // 将任务设置到就绪队列 // 将 task_set_ready 的工作在 task_start 中完成
 
     list_insert_last(&task_manager.task_list, &task->all_node);
 
@@ -117,6 +117,13 @@ int task_init(task_t *task, const char* name, int flag, uint32_t entry, uint32_t
     irq_leave_protection(state);
     
     return 0;
+}
+
+void task_start(task_t* task) {
+    // 任务的状态设置为就绪状态
+    irq_state_t state = irq_enter_protection(); // 进入临界区保护
+    task_set_ready(task); // 将任务设置到就绪队列
+    irq_leave_protection(state); // 退出临界区保护
 }
 
 void task_uninit(task_t* task) {
@@ -175,6 +182,7 @@ void task_manager_init(void) {
               (uint32_t)idle_task_entry,
               (uint32_t)idel_task_stack + IDLE_TASK_SIZE
     );
+    task_start(&task_manager.idle_task); // 启动 idle_task
 }
 
 void task_first_init(void) {
@@ -199,6 +207,8 @@ void task_first_init(void) {
 
     memory_alloc_page_for(first_start, alloc_size, PTE_P | PTE_W | PTE_U);
     kernel_memcpy((void*)first_start, (void*)s_first_task, copy_size); // 拷贝到分配的内存中去
+
+    task_start(&task_manager.first_task); // 启动 first_task
 }
 
 task_t* task_first_task(void) {
@@ -387,6 +397,7 @@ int sys_fork(void) {
     // 直接复制 父进程的tss.cr3页表, 会导致后面父进程因为和子进程栈是同一个导致互相破坏, 并且在后面父进程与子进程执行代码不一样时会导致修改同一个页表, 造成错误
     // tss->cr3 = parent_task->tss.cr3; // 设置页目录表地址, 这里是父进程的页目录表地址
 
+    task_start(child_task); // 启动子任务
     return child_task->pid; // 返回子进程的 PID
     
 fork_failed:
