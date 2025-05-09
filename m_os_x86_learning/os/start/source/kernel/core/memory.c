@@ -314,3 +314,26 @@ uint32_t memory_get_paddr(uint32_t page_dir, uint32_t vaddr) { // 返回 page_di
 
     return pte_paddr(pte) + (vaddr & (MEM_PAGE_SIZE - 1)); // 物理地址 = 页表项物理地址 + 偏移量
 }
+
+int memory_copy_uvm_data(uint32_t to, uint32_t page_dir, uint32_t from, uint32_t size) {
+    while (size > 0) {
+        uint32_t to_paddr = memory_get_paddr(page_dir, to);
+        if (to_paddr == 0) {
+            return -1;
+        }
+
+        uint32_t offset_in_page = to_paddr & (MEM_PAGE_SIZE - 1); // 页内偏移量
+        uint32_t curr_size = MEM_PAGE_SIZE - offset_in_page; // 当前页剩余的大小
+        if (curr_size > size) {
+            curr_size = size;
+        }
+
+        kernel_memcpy((void*)to_paddr, (void*)from, curr_size); // 拷贝数据到新的页物理内存中去
+
+        size -= curr_size;
+        to += curr_size;
+        from += curr_size;
+    }
+
+    return 0;
+}
