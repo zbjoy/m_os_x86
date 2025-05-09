@@ -503,6 +503,22 @@ int sys_execve(char* name, char** argv, char** env) { // 执行进程
         goto execve_failed; // 加载失败, 释放页目录表
     }
 
+    uint32_t stack_top = MEM_TASK_STACK_TOP;
+    int err = memory_alloc_for_page_dir(
+        new_page_dir, MEM_TASK_STACK_TOP - MEM_TASK_STACK_SIZE,
+        MEM_TASK_STACK_SIZE, PTE_P | PTE_U | PTE_W
+    );
+    if (err < 0) {
+        goto execve_failed; // 栈分配失败, 释放页目录表
+    }
+
+    syscall_frame_t* frame = (syscall_frame_t*)(task->tss.esp0 - sizeof(syscall_frame_t)); // 获取当前任务的栈指针
+    frame->eip = entry; // 设置新任务的入口地址
+    frame->eax = frame->ebx = frame->ecx = frame->edx = frame->esi = frame->edi = 0; // 清空寄存器
+    frame->esi = frame->edi = frame->ebp = 0; // 设置 ebp 寄存器
+    frame->eflags = EFLAGS_IF | EFLAGS_DEFAULT; // 设置标志寄存器 
+    frame->esp = stack_top - sizeof(uint32_t) * SYSCALL_PARAM_COUNT; // 设置栈指针, 栈顶地址
+
     task->tss.cr3 = new_page_dir; // 设置页目录表地址
     mmu_set_page_dir(new_page_dir); // 设置页目录表
 

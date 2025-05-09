@@ -12,6 +12,8 @@
 #define MEM_PAGE_SIZE (4096) // 4KB
 #define MEMORY_TASK_BASE (0x80000000) // 2GB (进程虚拟地址的起始位置)
 
+#define MEM_TASK_STACK_TOP 0xE0000000 // 栈顶地址
+#define MEM_TASK_STACK_SIZE (MEM_PAGE_SIZE * 500) // 栈大小
 
 typedef struct _addr_alloc_t {
     mutex_t mutex;
