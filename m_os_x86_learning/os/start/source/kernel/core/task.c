@@ -490,7 +490,23 @@ load_failed:
 }
 
 static int copy_args(char* to, uint32_t page_dir, int argc, char** argv) {
+    task_args_t task_args; // 任务参数结构体
+    task_args.argc = argc;
+    task_args.argv = (char**)(to + sizeof(task_args_t));
 
+    char* dest_arg = to + sizeof(task_args_t) + sizeof(char*) * argc; // 参数的起始地址
+    char** dest_arg_tb = memory_get_paddr(page_dir, (uint32_t)(to + sizeof(task_args_t))); // 获取参数表的物理地址
+    for (int i = 0; i < argc; i++) {
+        char* from = argv[i];
+        int len = kernel_strlen(from) + 1; // 字符串长度 + 1
+        int err = memory_copy_uvm_data((uint32_t)dest_arg, page_dir, (uint32_t)from, len); // 拷贝参数到新的栈中去
+        ASSERT(err >= 0);
+    
+        dest_arg_tb[i] = dest_arg; // 设置参数表
+        dest_arg += len; // 指向下一个参数的起始地址
+    }
+
+    return memory_copy_uvm_data((uint32_t)to, page_dir, (uint32_t)&task_args, sizeof(task_args)); // 拷贝参数结构体到新的栈中去
 }
 
 int sys_execve(char* name, char** argv, char** env) { // 执行进程
