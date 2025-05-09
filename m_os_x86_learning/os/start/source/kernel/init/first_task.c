@@ -16,7 +16,7 @@ int first_task_main(void) {
         count += 3;
         print_msg("child: %d\n", count);
 
-        char* argv[] = {"arg0", "arg1", "arg2", "arg3"};
+        char* argv[] = {"arg0", "arg1", "arg2", "arg3", (char*)0};
         execve("/shell.elf", argv, (char**)0); // 执行 shell 进程
     } else {
         print_msg("child task id = %d\n", pid);

@@ -495,7 +495,7 @@ static int copy_args(char* to, uint32_t page_dir, int argc, char** argv) {
     task_args.argv = (char**)(to + sizeof(task_args_t));
 
     char* dest_arg = to + sizeof(task_args_t) + sizeof(char*) * argc; // 参数的起始地址
-    char** dest_arg_tb = memory_get_paddr(page_dir, (uint32_t)(to + sizeof(task_args_t))); // 获取参数表的物理地址
+    char** dest_arg_tb = (char**)memory_get_paddr(page_dir, (uint32_t)(to + sizeof(task_args_t))); // 获取参数表的物理地址
     for (int i = 0; i < argc; i++) {
         char* from = argv[i];
         int len = kernel_strlen(from) + 1; // 字符串长度 + 1
