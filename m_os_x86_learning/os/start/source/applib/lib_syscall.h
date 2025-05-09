@@ -86,4 +86,11 @@ static inline int execve(const char* name, char* const* argv, char* const* env) 
     return sys_call(&args); // 参数的数量
 }
 
+static inline int yield(void) {
+    syscall_args_t args;
+    args.id = SYS_yield; // fork 的系统调用 ID
+
+    return sys_call(&args); // 参数的数量
+}
+
 #endif
