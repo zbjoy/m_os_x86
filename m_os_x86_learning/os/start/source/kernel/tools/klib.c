@@ -2,6 +2,34 @@
 #include "kernel/include/tools/log.h"
 #include "comm/cpu_instr.h"
 
+
+char* get_file_name(const char* name) {
+    char* s = name;
+
+    while (*s != '\0') {
+        s++;
+    }
+
+    while ((*s != '/') && (*s != '\\') && (s >= name)) {
+        s--;
+    }
+
+    // 此时 s 指向最后一个 '/' 或者 '\\'，或者指向 name 的开头, 所以 s+1 指向文件名的第一个字符
+    return s + 1;
+}
+
+int strings_count(char** start) {
+    int count = 0;
+
+    if (start) {
+        while (*start++) {
+            count++;
+        }
+    }
+
+    return count;
+}
+
 void kernel_strcpy(char *dest, const char *src)
 {
     if (!dest ||!src) {

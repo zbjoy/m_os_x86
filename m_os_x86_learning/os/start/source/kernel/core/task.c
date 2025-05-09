@@ -489,8 +489,14 @@ load_failed:
     return 0; // 加载失败, 返回 0
 }
 
+static int copy_args(char* to, uint32_t page_dir, int argc, char** argv) {
+
+}
+
 int sys_execve(char* name, char** argv, char** env) { // 执行进程
     task_t* task = task_current();
+
+    kernel_strncpy(task->name, get_file_name(name), TASK_NAME_SIZR); // 设置任务名称
 
     uint32_t old_page_dir = task->tss.cr3; // 保存旧的页目录表地址
     uint32_t new_page_dir = memory_create_uvm(); // 创建一个新的页目录表, 物理地址
@@ -503,13 +509,19 @@ int sys_execve(char* name, char** argv, char** env) { // 执行进程
         goto execve_failed; // 加载失败, 释放页目录表
     }
 
-    uint32_t stack_top = MEM_TASK_STACK_TOP;
+    uint32_t stack_top = MEM_TASK_STACK_TOP - MEM_TASK_ARG_SIZE; // 栈顶地址, 这里是栈的起始地址
     int err = memory_alloc_for_page_dir(
         new_page_dir, MEM_TASK_STACK_TOP - MEM_TASK_STACK_SIZE,
         MEM_TASK_STACK_SIZE, PTE_P | PTE_U | PTE_W
     );
     if (err < 0) {
         goto execve_failed; // 栈分配失败, 释放页目录表
+    }
+
+    int argc = strings_count(argv); // 获取参数个数
+    err = copy_args((char*)stack_top, new_page_dir, argc, argv); // 拷贝参数到新的栈中去
+    if (err < 0) {
+        goto execve_failed; // 拷贝参数失败, 释放页目录表
     }
 
     syscall_frame_t* frame = (syscall_frame_t*)(task->tss.esp0 - sizeof(syscall_frame_t)); // 获取当前任务的栈指针
