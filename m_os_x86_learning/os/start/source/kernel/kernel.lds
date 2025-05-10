@@ -6,7 +6,7 @@ SECTIONS
     PROVIDE(s_text = .);
 
     .text : {
-        *(EXCLUDE_FILE(*first_task*) .text)
+        *(EXCLUDE_FILE(*first_task* *lib_syscall*) .text)
     }
 
     .rodata : {
@@ -35,6 +35,8 @@ SECTIONS
     .first_task : AT(ADDR(.bss) + SIZEOF(.bss)){
         *first_task_entry*(.text .rodata .bss .data)
         *first_task*(.text .rodata .bss .data)
+        *lib_syscall*(.text .rodata .bss .data)
+
     }
 
     PROVIDE(e_first_task = LOADADDR(.first_task) + SIZEOF(.first_task));
