@@ -8,6 +8,14 @@
 #define SYS_fork 2 // 系统调用的 ID
 #define SYS_execve 3 // 系统调用的 ID
 #define SYS_yield 4 // 系统调用的 ID
+
+// 文件相关的读写从 50 开始
+#define SYS_open 50
+#define SYS_read 51
+#define SYS_write 52
+#define SYS_close 53
+#define SYS_lseek 54
+
 #define SYS_printmsg 100 
 
 #define SYSCALL_PARAM_COUNT 5

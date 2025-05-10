@@ -90,15 +90,40 @@ int open(const char* name, int flags, ...) {
 }
 
 int read(int file, char* ptr, int len){
+    syscall_args_t args;
+    args.id = SYS_read;
+    args.arg0 = file;
+    args.arg1 = (int)ptr;
+    args.arg2 = len;
 
+    return sys_call(&args); // 参数的数量
 }
 
 int write(int file, char* ptr, int len){
+    syscall_args_t args;
+    args.id = SYS_write;
+    args.arg0 = file;
+    args.arg1 = (int)ptr;
+    args.arg2 = len;
+
+    return sys_call(&args); // 参数的数量
 }
 
 int close(int file){
+    syscall_args_t args;
+    args.id = SYS_close;
+    args.arg0 = file;
+
+    return sys_call(&args); // 参数的数量
 }
 
 int lseek(int file, int ptr, int dir){
+    syscall_args_t args;
+    args.id = SYS_lseek;
+    args.arg0 = file;
+    args.arg1 = ptr;
+    args.arg2 = dir;
+
+    return sys_call(&args); // 参数的数量
 }
 
