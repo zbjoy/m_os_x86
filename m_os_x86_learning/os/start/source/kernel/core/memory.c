@@ -339,6 +339,43 @@ int memory_copy_uvm_data(uint32_t to, uint32_t page_dir, uint32_t from, uint32_t
 }
 
 char* sys_sbrk(int incr) { // 分配内存
-    return (char*)0;
+    task_t* task = task_current();
+    char* pre_heap_end = (char*)task->heap_end;
+
+    int pre_inc = incr; // 记录原来的增量
+
+    ASSERT(incr >= 0);
+    if (incr == 0) {
+        log_printf("(sbrk(0): end = 0x%x sys_sbrk: incr == 0\n", pre_heap_end);
+        return pre_heap_end; // 返回 program break 的当前位置
+    }
+
+    uint32_t start = task->heap_end;
+    uint32_t end = start + incr;
+
+    int start_offset = start % MEM_PAGE_SIZE;
+    if (start_offset) {
+        if (start_offset + incr <= MEM_PAGE_SIZE) {
+            task->heap_end = end; // 直接修改堆的结束地址
+            return pre_heap_end; // 返回分配的起始地址
+        } else {
+            uint32_t curr_size = MEM_PAGE_SIZE - start_offset; // 当前页剩余的大小
+            start += curr_size; // 指向下一个页的起始地址
+            incr -= curr_size; // 减去当前页剩余的大小
+        }
+    }
+
+    if (incr) {
+        uint32_t curr_size = end - start;
+        int err = memory_alloc_page_for(start, curr_size, PTE_P | PTE_U | PTE_W);
+        if (err < 0) {
+            log_printf("sbrk: alloc mem failed.");
+            return (char*)-1; // 分配失败, 返回空指针
+        }
+    }
+
+    log_printf("sbrk(%d): end=0x%x", pre_inc, end);
+    task->heap_end = end; // 修改堆的结束地址
+    return (char*)pre_heap_end;
 }
 
