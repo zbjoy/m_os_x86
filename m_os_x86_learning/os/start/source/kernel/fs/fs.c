@@ -54,7 +54,10 @@ int sys_read(int file, char* ptr, int len) {
     return -1; // 其他文件暂不支持
 }
 
+#include "kernel/include/tools/log.h"
 int sys_write(int file, char* ptr, int len) {
+    ptr[len] = '\0'; // 确保字符串以 null 结尾
+    log_printf("%s", ptr); // 打印到日志
     return -1; // 其他文件暂不支持
 }
 

@@ -99,7 +99,7 @@ int read(int file, char* ptr, int len){
     return sys_call(&args); // 参数的数量
 }
 
-int write(int file, char* ptr, int len){
+int write(int file, char* ptr, int len) {
     syscall_args_t args;
     args.id = SYS_write;
     args.arg0 = file;

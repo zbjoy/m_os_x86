@@ -9,6 +9,9 @@ int main(int argc, char** argv) {
     sbrk(4096 * 5 + 1234);
 
     printf("Hello World!!\n");
+    printf("Hello From Shell!!\n");
+    printf("os version: %s\n", "1.0.0");
+    printf("%d %d %d\n", 1, 2, 3);
 
     for (int i = 0; i < argc; i++) {
         print_msg("arg = %s\n", (int)argv[i]);
