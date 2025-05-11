@@ -100,6 +100,8 @@ int task_init(task_t *task, const char* name, int flag, uint32_t entry, uint32_t
     task->sleep_ticks = 0;
 
     task->parent = (task_t*)0; // 父进程, 这里没有父进程, 所以设置为 0
+    task->heap_start = 0; // 堆空间起始地址
+    task->heap_end = 0; // 堆空间结束地址
 
     list_node_init(&task->run_node);
     list_node_init(&task->wait_node);
@@ -198,6 +200,8 @@ void task_first_init(void) {
 
     // task_init(&task_manager.first_task, "first task", 0, 0); // 传入当前的地址
     task_init(&task_manager.first_task, "first task", 0, first_start, first_start + alloc_size); // 改成传入 first_task_entry 地址
+    task_manager.first_task.heap_start = (uint32_t)e_first_task;
+    task_manager.first_task.heap_end = (uint32_t)e_first_task;
 
     write_tr(task_manager.first_task.tss_sel);
     task_manager.curr_task = &task_manager.first_task;
@@ -486,6 +490,9 @@ static uint32_t load_elf_file(task_t* task, char* name, uint32_t page_dir) {
             log_printf("load phdr programe %d failed.\n", i);
             goto load_failed;
         }
+
+        task->heap_start = elf_phdr.p_vaddr + elf_phdr.p_memsz; // 更新堆的起始地址
+        task->heap_end = task->heap_start; // 更新堆的结束地址
     }
 
     sys_close(file); // 关闭文件

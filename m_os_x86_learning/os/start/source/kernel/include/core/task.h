@@ -30,6 +30,8 @@ typedef struct _task_t {
 
     int pid; // 进程ID
     struct _task_t* parent; // 父进程
+    uint32_t heap_start; // 堆空间起始地址
+    uint32_t heap_end; // 堆空间结束地址
 
     int time_ticks; // 进程运行的时间片
     int slice_ticks; // 进程的时间片长度
