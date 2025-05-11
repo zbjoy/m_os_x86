@@ -46,5 +46,6 @@ uint32_t memory_copy_uvm(uint32_t page_dir);
 void memory_destroy_uvm(uint32_t page_dir);
 uint32_t memory_get_paddr(uint32_t page_dir, uint32_t vaddr); // 返回 page_dir 页目录表中 vaddr 虚拟地址对应的物理地址
 int memory_copy_uvm_data(uint32_t to, uint32_t page_dir, uint32_t from, uint32_t size); // 拷贝数据到新的页物理内存中去
+char* sys_sbrk(int incr); // 分配内存
 
 #endif

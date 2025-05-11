@@ -127,3 +127,29 @@ int lseek(int file, int ptr, int dir){
     return sys_call(&args); // 参数的数量
 }
 
+
+int isatty(int file){
+    syscall_args_t args;
+    args.id = SYS_isatty;
+    args.arg0 = file;
+
+    return sys_call(&args); // 参数的数量
+}
+
+int fstat(int file, struct stat* st){
+    syscall_args_t args;
+    args.id = SYS_fstat;
+    args.arg0 = file;
+    args.arg1 = (int)st;
+
+    return sys_call(&args); // 参数的数量
+}
+
+void* sbrk(ptrdiff_t incr){
+    syscall_args_t args;
+    args.id = SYS_sbrk;
+    args.arg0 = incr;
+
+    return (void*)sys_call(&args); // 参数的数量
+}
+

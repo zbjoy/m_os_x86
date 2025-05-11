@@ -3,6 +3,7 @@
 #include "kernel/include/tools/klib.h"
 #include "comm/boot_info.h"
 #include "comm/cpu_instr.h"
+#include <sys/stat.h>
 
 // #define TEMP_ADDR (8 * 1024 * 1024) // 8MB
 static uint8_t TEMP_ADDR[100 * 1024]; // 100KB
@@ -67,4 +68,13 @@ int sys_lseek(int file, int ptr, int dir) {
 
 int sys_close(int file) {
     return 0; // 成功关闭文件
+}
+
+int sys_isatty(int file) {
+    return -1;
+}
+
+
+int sys_fstat(int file, struct stat* st) {
+    return -1;
 }

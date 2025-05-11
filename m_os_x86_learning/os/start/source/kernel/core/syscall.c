@@ -1,6 +1,8 @@
 #include "kernel/include/core/syscall.h"
 #include "kernel/include/core/task.h"
 #include "kernel/include/tools/log.h"
+#include "kernel/include/core/memory.h"
+#include "kernel/include/fs/fs.h"
 
 typedef int (*sys_handler_t)(uint32_t arg0, uint32_t arg1, uint32_t arg2, uint32_t arg3);
 
@@ -15,6 +17,9 @@ static const sys_handler_t sys_table[] = {
     [SYS_printmsg] = (sys_handler_t)sys_print_msg,
     [SYS_execve] = (sys_handler_t)sys_execve,
     [SYS_yield] = (sys_handler_t)sys_sched_yield,
+    [SYS_isatty] = (sys_handler_t)sys_isatty,
+    [SYS_sbrk] = (sys_handler_t)sys_sbrk,
+    [SYS_fstat] = (sys_handler_t)sys_fstat,
 };
 void do_handler_syscall(syscall_frame_t* frame) {
     if (frame->func_id < sizeof(sys_table) / sizeof(sys_table[0])) {
