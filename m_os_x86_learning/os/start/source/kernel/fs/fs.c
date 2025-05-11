@@ -56,9 +56,11 @@ int sys_read(int file, char* ptr, int len) {
 
 #include "kernel/include/tools/log.h"
 int sys_write(int file, char* ptr, int len) {
-    ptr[len] = '\0'; // 确保字符串以 null 结尾
-    log_printf("%s", ptr); // 打印到日志
-    return -1; // 其他文件暂不支持
+    if (file == 1) {
+        ptr[len] = '\0';       // 确保字符串以 null 结尾
+        log_printf("%s", ptr); // 打印到日志
+        return -1;             // 其他文件暂不支持
+    }
 }
 
 int sys_lseek(int file, int ptr, int dir) {
