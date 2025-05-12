@@ -11,6 +11,7 @@
 #include "kernel/include/tools/list.h"
 #include "kernel/include/ipc/sem.h"
 #include "kernel/include/core/memory.h"
+#include "kernel/include/dev/console.h"
 
 void test() {
 
@@ -22,6 +23,7 @@ void kernel_init(boot_info_t *boot_info)
 
     cpu_init();
     log_init();
+    console_init();
 
     // *(uint8_t*)test = 0x12; 
     
