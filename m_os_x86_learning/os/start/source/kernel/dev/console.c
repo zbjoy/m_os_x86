@@ -4,9 +4,35 @@
 
 static console_t console_buf[CONSOLE_NR];
 
+static void move_forward(console_t* console, int n) {
+    for (int i = 0; i < n; ++i) {
+        if (++console->cursor_col >= console->display_cols) {
+            console->cursor_row++;
+            console->cursor_col = 0;
+        }
+    }
+}
+
+static void show_char(console_t* console, char c) {
+    // 获得显存的起始地址
+    int offset = console->cursor_col + console->cursor_row * console->display_cols;
+
+    disp_char_t* p = console->disp_base + offset;
+    p->c = c; // 显示字符
+    p->foreground = console->foreground; // 前景色
+    p->background = console->background; // 背景色
+    move_forward(console, 1);    // 光标向前移动一格
+
+}
+
 int console_init(void) {
     for (int i = 0; i < CONSOLE_NR; i++) {
         console_t* console = console_buf + i;
+
+        // 光标位置初始化
+        console->cursor_row = 0;
+        console->cursor_col = 0;
+
 
         console->display_cols = CONSOLE_COL_MAX;
         console->display_rows = CONSOLE_ROW_MAX;
@@ -20,9 +46,10 @@ int console_write(int console, char* data, int size) {
     int len;
 
     for (len = 0; len < size; len++) {
-        char c = *data++;
+        char ch = *data++;
 
         // TODO: 处理控制字符
+        show_char(ch);
     }
     return len;
 }
