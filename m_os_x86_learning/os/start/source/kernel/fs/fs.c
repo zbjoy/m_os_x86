@@ -4,6 +4,7 @@
 #include "comm/boot_info.h"
 #include "comm/cpu_instr.h"
 #include <sys/stat.h>
+#include "kernel/include/dev/console.h"
 
 // #define TEMP_ADDR (8 * 1024 * 1024) // 8MB
 static uint8_t TEMP_ADDR[100 * 1024]; // 100KB
@@ -57,10 +58,12 @@ int sys_read(int file, char* ptr, int len) {
 #include "kernel/include/tools/log.h"
 int sys_write(int file, char* ptr, int len) {
     if (file == 1) {
-        ptr[len] = '\0';       // 确保字符串以 null 结尾
-        log_printf("%s", ptr); // 打印到日志
-        return -1;             // 其他文件暂不支持
+        // 这里不再进行串口输出, 改为控制台输出
+        // ptr[len] = '\0';       // 确保字符串以 null 结尾
+        // log_printf("%s", ptr); // 打印到日志
+        console_write(0, ptr, len); // 写入控制台, 目前只有一个控制台, 所以第一个参数直接写0
     }
+    return -1; // 其他文件暂不支持
 }
 
 int sys_lseek(int file, int ptr, int dir) {
