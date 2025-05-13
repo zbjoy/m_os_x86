@@ -8,6 +8,25 @@
 #define CONSOLE_ROW_MAX 25
 #define CONSOLE_COL_MAX 80
 
+typedef enum {
+    COLOR_Black = 0,
+    COLOR_Blue,
+    COLOR_Green,
+    COLOR_Cyan,
+    COLOR_Red,
+    COLOR_Magenta,
+    COLOR_Brown,
+    COLOR_Gray,
+    COLOR_DarkGray,
+    COLOR_Light_Blue,
+    COLOR_Light_Green,
+    COLOR_Light_Cyan,
+    COLOR_Light_Red,
+    COLOR_Light_Magenta,
+    COLOR_Yellow,
+    COLOR_White
+} color_t;
+
 // 通过联合体将 v 拆开方便使用
 // typedef struct _disp_char_t {
     // uint16_t v; // 第一个字节表示 ascii 码，第二个字节表示颜色
@@ -25,6 +44,8 @@ typedef struct _console_t {
     disp_char_t* disp_base; // 显示缓冲区的基地址
     int cursor_row, cursor_col; // 光标所在的行和列
     int display_rows, display_cols; // 显示缓冲区的行数和列数
+    color_t foreground; // 前景色
+    color_t background; // 背景色
 } console_t;
 
 int console_init(void);

@@ -49,7 +49,7 @@ int console_write(int console, char* data, int size) {
         char ch = *data++;
 
         // TODO: 处理控制字符
-        show_char(ch);
+        show_char(c, ch);
     }
     return len;
 }
