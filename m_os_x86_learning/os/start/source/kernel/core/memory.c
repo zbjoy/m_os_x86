@@ -2,6 +2,7 @@
 #include "kernel/include/tools/log.h"
 #include "kernel/include/tools/klib.h"
 #include "kernel/include/cpu/mmu.h"
+#include "kernel/include/dev/console.h"
 
 static addr_alloc_t paddr_alloc;
 static pde_t kernel_page_dir[PDE_CNT] __attribute__((aligned(MEM_PAGE_SIZE))); // 页目录表, 4KB, 1024个页目录项, 每个页目录项4字节, 4KB
@@ -100,6 +101,7 @@ void create_kernel_table(void) {
         {kernel_base, s_text, kernel_base, PTE_W},// 64KB 之前的数据
         {s_text, e_text, s_text, 0}, // 让虚拟d址和物理地址相同, 也就是内核代码段的起始地址
         {s_data, (void*)MEM_EBDA_START, s_data, PTE_W}, // 让虚拟地址和物理地址相同, 也就是内核数据段的起始地址
+        {(void*)CONSOLE_DISP_ADDR, (void*)CONSOLE_DISP_END, (void*)CONSOLE_DISP_ADDR, PTE_W},
         {(void*)MEM_EXT_START, (void*)MEM_EXT_END, (void*)MEM_EXT_START, PTE_W}
     };
 
