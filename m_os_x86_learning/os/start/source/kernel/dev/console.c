@@ -30,8 +30,8 @@ static void clear_display(console_t* console) {
     disp_char_t* start = console->disp_base;
     for (int i = 0; i < size; i++, start++) {
         start->c = ' '; // 显示空格
-        start->foreground = console->background; // 背景色
-        start->background = console->foreground; // 前景色
+        start->foreground = console->foreground; // 前景色
+        start->background = console->background; // 背景色
     }
 }
 
