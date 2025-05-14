@@ -25,6 +25,16 @@ static void show_char(console_t* console, char c) {
 
 }
 
+static void clear_display(console_t* console) {
+    int size = console->display_rows * console->display_cols;
+    disp_char_t* start = console->disp_base;
+    for (int i = 0; i < size; i++, start++) {
+        start->c = ' '; // 显示空格
+        start->foreground = console->background; // 背景色
+        start->background = console->foreground; // 前景色
+    }
+}
+
 int console_init(void) {
     for (int i = 0; i < CONSOLE_NR; i++) {
         console_t* console = console_buf + i;
@@ -41,6 +51,8 @@ int console_init(void) {
         console->background = COLOR_Black; // 背景色
 
         console->disp_base = (disp_char_t*)(CONSOLE_DISP_ADDR + i * (CONSOLE_COL_MAX * CONSOLE_ROW_MAX)); // disp_char_t 是一个 2 字节的结构体, 每次给它的指针 +1 相当于加 2 个字节, 这里是一个 80 * 25 的显示缓冲区
+
+        clear_display(console);
     }
     return 0;
 }

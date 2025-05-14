@@ -3,4 +3,4 @@ image
 script
 newlib
 build
-git_push.bat
+push.bat
