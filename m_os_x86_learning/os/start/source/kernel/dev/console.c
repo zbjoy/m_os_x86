@@ -1,14 +1,51 @@
 #include "kernel/include/dev/console.h"
+#include "kernel/include/tools/klib.h"
 
 #define CONSOLE_NR 1 // 目前只做一个屏幕的处理
 
 static console_t console_buf[CONSOLE_NR];
+
+static void erase_rows(console_t* console, int start, int end) {
+    disp_char_t* disp_start = console->disp_base + console->display_cols * start;
+    disp_char_t* disp_end = console->disp_base + console->display_cols * (end + 1);
+    while (disp_start < disp_end) {
+        disp_start->c = ' '; // 清除字符
+        disp_start->foreground = console->foreground; // 前景色
+        disp_start->background = console->background; // 背景色
+        disp_start++;
+    }
+}
+
+static void scroll_up(console_t* console, int lines) {
+    disp_char_t* dest = console->disp_base;
+    disp_char_t* src = console->disp_base + lines * console->display_cols;
+    uint32_t size = (console->display_rows - lines) * console->display_cols * sizeof(disp_char_t);
+    kernel_memcpy(dest, src, size); // 向上滚动
+
+    erase_rows(console, console->display_rows - lines, console->display_rows - 1); // 清除新出现的行
+    console->cursor_row -= lines; // 光标向上移动
+}
+
+static void move_to_col0(console_t* console) {
+    console->cursor_col = 0; // 光标移动到第一列
+}
+
+static void move_next_line(console_t* console) {
+    console->cursor_row++;
+    if (console->cursor_row >= console->display_rows) {
+        scroll_up(console, 1); // 屏幕向上滚动一行
+    }
+}
 
 static void move_forward(console_t* console, int n) {
     for (int i = 0; i < n; ++i) {
         if (++console->cursor_col >= console->display_cols) {
             console->cursor_row++;
             console->cursor_col = 0;
+        
+            if (console->cursor_row >= console->display_rows) {
+                scroll_up(console, 1); // 屏幕向上滚动一行
+            }
         }
     }
 }
@@ -64,8 +101,19 @@ int console_write(int console, char* data, int size) {
     for (len = 0; len < size; len++) {
         char ch = *data++;
 
+        switch(ch) {
+        case '\n':
+            move_to_col0(c);
+            move_next_line(c);
+            break;
+        default:
+            show_char(c, ch);
+            break;
+        }
+
         // TODO: 处理控制字符
-        show_char(c, ch);
+        // show_char(c, ch);
+
     }
     return len;
 }
