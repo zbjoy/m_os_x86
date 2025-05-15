@@ -6,20 +6,20 @@
 
 static console_t console_buf[CONSOLE_NR];
 
-static void read_cursor_pos(void) {
+static int read_cursor_pos(void) {
     int pos;
 
     // 获得光标位置
     outb(0x3D4, 0xF); // 读取光标位置的低字节
     pos = inb(0x3D5); // 读取光标位置的低字节
 
-    outb(0x3D5, 0xE); // 读取光标位置的高字节
+    outb(0x3D4, 0xE); // 读取光标位置的高字节
     pos |= inb(0x3D5) << 8; // 读取光标位置的高字节
 
     return pos;
 }
 
-static void update_cursor_pos(console_t* console) {
+static int update_cursor_pos(console_t* console) {
     // 当前光标位置
     uint16_t pos = console->cursor_row * console->display_cols + console->cursor_col;
 
@@ -29,7 +29,7 @@ static void update_cursor_pos(console_t* console) {
     outb(0x3D5, (uint8_t)(pos & 0xFF)); // 写入光标位置的低字节
 
     // 写高 8 位
-    outb(0x3D5, 0xE); // 读取光标位置的高字节
+    outb(0x3D4, 0xE); // 读取光标位置的高字节
     outb(0x3D5, (uint8_t)((pos >> 8) & 0xFF)); // 写入光标位置的高字节
 
     return pos;
@@ -106,19 +106,18 @@ int console_init(void) {
     for (int i = 0; i < CONSOLE_NR; i++) {
         console_t* console = console_buf + i;
 
+        console->display_cols = CONSOLE_COL_MAX;
+        console->display_rows = CONSOLE_ROW_MAX;
+
+        console->foreground = COLOR_White; // 前景色
+        console->background = COLOR_Black; // 背景色
+
         // 读取当前光标位置
         int cursor_pos = read_cursor_pos();
 
         // 光标位置初始化
         console->cursor_row = cursor_pos / console->display_cols;
         console->cursor_col = cursor_pos % console->display_cols;
-
-
-        console->display_cols = CONSOLE_COL_MAX;
-        console->display_rows = CONSOLE_ROW_MAX;
-
-        console->foreground = COLOR_White; // 前景色
-        console->background = COLOR_Black; // 背景色
 
         console->disp_base = (disp_char_t*)(CONSOLE_DISP_ADDR + i * (CONSOLE_COL_MAX * CONSOLE_ROW_MAX)); // disp_char_t 是一个 2 字节的结构体, 每次给它的指针 +1 相当于加 2 个字节, 这里是一个 80 * 25 的显示缓冲区
 
