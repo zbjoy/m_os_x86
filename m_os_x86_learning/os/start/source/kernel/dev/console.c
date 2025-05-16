@@ -6,6 +6,7 @@
 
 static console_t console_buf[CONSOLE_NR];
 
+// 读取当前光标位置
 static int read_cursor_pos(void) {
     int pos;
 
