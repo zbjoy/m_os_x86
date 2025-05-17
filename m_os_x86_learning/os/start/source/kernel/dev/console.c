@@ -20,6 +20,7 @@ static int read_cursor_pos(void) {
     return pos;
 }
 
+// 更新当前光标位置
 static int update_cursor_pos(console_t* console) {
     // 当前光标位置
     uint16_t pos = console->cursor_row * console->display_cols + console->cursor_col;
@@ -36,6 +37,7 @@ static int update_cursor_pos(console_t* console) {
     return pos;
 }
 
+// 清除从 start 行到 end 行的行
 static void erase_rows(console_t* console, int start, int end) {
     disp_char_t* disp_start = console->disp_base + console->display_cols * start;
     disp_char_t* disp_end = console->disp_base + console->display_cols * (end + 1);
@@ -47,6 +49,7 @@ static void erase_rows(console_t* console, int start, int end) {
     }
 }
 
+// 向上滚动 lines 行
 static void scroll_up(console_t* console, int lines) {
     disp_char_t* dest = console->disp_base;
     disp_char_t* src = console->disp_base + lines * console->display_cols;
@@ -57,10 +60,12 @@ static void scroll_up(console_t* console, int lines) {
     console->cursor_row -= lines; // 光标向上移动
 }
 
+// 光标移动到第一列
 static void move_to_col0(console_t* console) {
     console->cursor_col = 0; // 光标移动到第一列
 }
 
+// 光标移动到下一行
 static void move_next_line(console_t* console) {
     console->cursor_row++;
     if (console->cursor_row >= console->display_rows) {
@@ -68,6 +73,7 @@ static void move_next_line(console_t* console) {
     }
 }
 
+// 光标向前移动 n 格
 static void move_forward(console_t* console, int n) {
     for (int i = 0; i < n; ++i) {
         if (++console->cursor_col >= console->display_cols) {
@@ -81,6 +87,7 @@ static void move_forward(console_t* console, int n) {
     }
 }
 
+// 光标向后移动 n 格
 static void show_char(console_t* console, char c) {
     // 获得显存的起始地址
     int offset = console->cursor_col + console->cursor_row * console->display_cols;
@@ -93,6 +100,7 @@ static void show_char(console_t* console, char c) {
 
 }
 
+// 清除显示缓冲区
 static void clear_display(console_t* console) {
     int size = console->display_rows * console->display_cols;
     disp_char_t* start = console->disp_base;
@@ -103,6 +111,7 @@ static void clear_display(console_t* console) {
     }
 }
 
+// 初始化控制台
 int console_init(void) {
     for (int i = 0; i < CONSOLE_NR; i++) {
         console_t* console = console_buf + i;
@@ -127,6 +136,7 @@ int console_init(void) {
     return 0;
 }
 
+// console: 写的是哪个控制台, data: 要写入的数据, size: 要写入的数据的长度
 int console_write(int console, char* data, int size) {
     console_t* c = console_buf + console;
     int len;
