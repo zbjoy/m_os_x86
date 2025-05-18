@@ -152,11 +152,61 @@ int console_init(void) {
         console->cursor_row = cursor_pos / console->display_cols;
         console->cursor_col = cursor_pos % console->display_cols;
 
+        console->old_cursor_col = console->cursor_col;
+        console->old_cursor_row = console->cursor_row;
+        console->write_state = CONSOLE_WRITE_NORMAL; // 写入状态
+
         console->disp_base = (disp_char_t*)(CONSOLE_DISP_ADDR + i * (CONSOLE_COL_MAX * CONSOLE_ROW_MAX)); // disp_char_t 是一个 2 字节的结构体, 每次给它的指针 +1 相当于加 2 个字节, 这里是一个 80 * 25 的显示缓冲区
 
         // clear_display(console);
     }
     return 0;
+}
+
+static void write_normal(console_t *console, char ch) {
+    switch (ch) {
+    case ASCII_ESC:
+        console->write_state = CONSOLE_WRITE_ESC; // 转义字符
+        break;
+    case 0x7F:
+        erase_backword(c); // 删除一个字符
+        break;
+    case '\b':
+        move_backword(c, 1); // 光标向后移动一格
+        break;
+    case '\r':
+        move_to_col0(c); // 光标移动到第一列
+        break;
+    case '\n':
+        move_to_col0(c);
+        move_next_line(c);
+        break;
+    default:
+        if ((ch >= ' ') && (ch <= '~')) { // 可显示字符
+            show_char(c, ch);
+        }
+        break;
+    }
+}
+
+static void write_esc(console_t *console, char ch) {
+    switch (ch) {
+    case '7':
+        // console->old_cursor_col = console->cursor_col;
+        // console->old_cursor_row = console->cursor_row;
+        save_cursor(console); // 保存光标位置
+        console->write_state = CONSOLE_WRITE_NORMAL; // 恢复写入状态
+        break;
+    case '8':
+        // console->cursor_col = console->old_cursor_col;
+        // console->cursor_row = console->old_cursor_row;
+        restore_cursor(console); // 恢复光标位置
+        console->write_state = CONSOLE_WRITE_NORMAL; // 恢复写入状态
+        break;
+    default: // 遇到处理不了的错误
+        console->write_state = CONSOLE_WRITE_NORMAL; // 恢复写入状态
+        break;
+    }
 }
 
 // console: 写的是哪个控制台, data: 要写入的数据, size: 要写入的数据的长度
@@ -167,26 +217,17 @@ int console_write(int console, char* data, int size) {
     for (len = 0; len < size; len++) {
         char ch = *data++;
 
-        switch(ch) {
-        case 0x7F:
-            erase_backword(c); // 删除一个字符
+        switch (c->write_state) {
+        case CONSOLE_WRITE_NORMAL:
+            write_normal(c, ch);
             break;
-        case '\b':
-            move_backword(c, 1); // 光标向后移动一格
-            break;
-        case '\r':
-            move_to_col0(c); // 光标移动到第一列
-            break;
-        case '\n':
-            move_to_col0(c);
-            move_next_line(c);
+        case CONSOLE_WRITE_ESC:
+            write_esc(c, ch);
             break;
         default:
-            if ((ch >= ' ') && (ch <= '~')) { // 可显示字符
-                show_char(c, ch);
-            }
             break;
         }
+
 
         // TODO: 处理控制字符
         // show_char(c, ch);

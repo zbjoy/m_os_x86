@@ -8,6 +8,8 @@
 #define CONSOLE_ROW_MAX 25
 #define CONSOLE_COL_MAX 80
 
+#define ASCII_ESC 0x1b // \033
+
 typedef enum {
     COLOR_Black = 0,
     COLOR_Blue,
@@ -41,11 +43,19 @@ typedef union _disp_char_t {
 } disp_char_t;
 
 typedef struct _console_t {
+    enum {
+        CONSOLE_WRITE_NORMAL = 0, // 普通写入
+        CONSOLE_WRITE_ESC, // 转义字符
+    } write_state;
+
     disp_char_t* disp_base; // 显示缓冲区的基地址
     int cursor_row, cursor_col; // 光标所在的行和列
     int display_rows, display_cols; // 显示缓冲区的行数和列数
     color_t foreground; // 前景色
     color_t background; // 背景色
+
+    int old_cursor_col, old_cursor_row; // 上一次光标所在的行和列
+
 } console_t;
 
 int console_init(void);

@@ -10,6 +10,8 @@ int main(int argc, char** argv) {
 
     printf("abef\b\b\b\bcd\n"); // cdef
     printf("abcd\x7f;fg\n"); // abc;fg
+    
+    printf("\0337Hello,World!\0338123\n"); // ESC 7,8 输出123lo,word!
 
     printf("Hello World!!\n");
     printf("Hello From Shell!!\n");
