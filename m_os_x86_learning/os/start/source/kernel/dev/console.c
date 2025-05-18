@@ -129,7 +129,7 @@ static int move_backword(console_t* console, int n) {
 static void erase_backword(console_t* console) {
     if (move_backword(console, 1) == 0) {
         show_char(console, ' '); // 显示空格
-        move_forward(console, 1); // 光标向前移动一格
+        move_backword(console, 1); // 光标向后移动一格
     }
 }
 
