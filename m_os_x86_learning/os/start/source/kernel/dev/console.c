@@ -163,27 +163,39 @@ int console_init(void) {
     return 0;
 }
 
+// 保存光标
+void save_cursor(console_t* console) {
+    console->old_cursor_col = console->cursor_col;
+    console->old_cursor_row = console->cursor_row;
+}
+
+// 恢复光标
+static void restore_cursor(console_t* console) {
+    console->cursor_col = console->old_cursor_col;
+    console->cursor_row = console->old_cursor_row;
+}
+
 static void write_normal(console_t *console, char ch) {
     switch (ch) {
     case ASCII_ESC:
         console->write_state = CONSOLE_WRITE_ESC; // 转义字符
         break;
     case 0x7F:
-        erase_backword(c); // 删除一个字符
+        erase_backword(console); // 删除一个字符
         break;
     case '\b':
-        move_backword(c, 1); // 光标向后移动一格
+        move_backword(console, 1); // 光标向后移动一格
         break;
     case '\r':
-        move_to_col0(c); // 光标移动到第一列
+        move_to_col0(console); // 光标移动到第一列
         break;
     case '\n':
-        move_to_col0(c);
-        move_next_line(c);
+        move_to_col0(console);
+        move_next_line(console);
         break;
     default:
         if ((ch >= ' ') && (ch <= '~')) { // 可显示字符
-            show_char(c, ch);
+            show_char(console, ch);
         }
         break;
     }
