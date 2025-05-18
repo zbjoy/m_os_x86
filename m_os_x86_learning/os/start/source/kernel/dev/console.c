@@ -215,10 +215,19 @@ static void write_esc(console_t *console, char ch) {
         restore_cursor(console); // 恢复光标位置
         console->write_state = CONSOLE_WRITE_NORMAL; // 恢复写入状态
         break;
+    case '[':
+        clear_esc_param(console); // 清除 ESC 参数
+        console->write_state = CONSOLE_WRITE_SQUARE; // 方括号
+        break;
     default: // 遇到处理不了的错误
         console->write_state = CONSOLE_WRITE_NORMAL; // 恢复写入状态
         break;
     }
+}
+
+// ESC [pn
+static void write_esc_square(console_t* console, char c) {
+
 }
 
 // console: 写的是哪个控制台, data: 要写入的数据, size: 要写入的数据的长度
@@ -235,6 +244,9 @@ int console_write(int console, char* data, int size) {
             break;
         case CONSOLE_WRITE_ESC:
             write_esc(c, ch);
+            break;
+        case CONSOLE_WRITE_SQUARE:
+            write_esc_square(c, ch);
             break;
         default:
             break;
