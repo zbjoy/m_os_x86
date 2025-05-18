@@ -164,7 +164,7 @@ int console_init(void) {
 }
 
 // 保存光标
-void save_cursor(console_t* console) {
+static void save_cursor(console_t* console) {
     console->old_cursor_col = console->cursor_col;
     console->old_cursor_row = console->cursor_row;
 }
