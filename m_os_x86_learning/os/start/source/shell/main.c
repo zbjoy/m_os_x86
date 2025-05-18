@@ -12,6 +12,7 @@ int main(int argc, char** argv) {
     printf("abcd\x7f;fg\n"); // abc;fg
     
     printf("\0337Hello,World!\0338123\n"); // ESC 7,8 输出123lo,word!
+    printf("\033[31;42mHello, World!!\033[39;49m123\n"); // ESC [pn m, Hello,world红色，其余绿色
 
     printf("Hello World!!\n");
     printf("Hello From Shell!!\n");

@@ -9,6 +9,7 @@
 #define CONSOLE_COL_MAX 80
 
 #define ASCII_ESC 0x1b // \033
+#define ESC_PARAM_MAX 10 // ESC 缓冲区的大小
 
 typedef enum {
     COLOR_Black = 0,
@@ -46,6 +47,7 @@ typedef struct _console_t {
     enum {
         CONSOLE_WRITE_NORMAL = 0, // 普通写入
         CONSOLE_WRITE_ESC, // 转义字符
+        CONSOLE_WRITE_SQUARE, // 方括号
     } write_state;
 
     disp_char_t* disp_base; // 显示缓冲区的基地址
@@ -55,6 +57,7 @@ typedef struct _console_t {
     color_t background; // 背景色
 
     int old_cursor_col, old_cursor_row; // 上一次光标所在的行和列
+    int esc_param[ESC_PARAM_MAX]; // ESC 参数
 
 } console_t;
 
