@@ -58,7 +58,7 @@ typedef struct _console_t {
 
     int old_cursor_col, old_cursor_row; // 上一次光标所在的行和列
     int esc_param[ESC_PARAM_MAX]; // ESC 参数
-
+    int curr_param_index; // 确定当前再对哪个参数进行索引
 } console_t;
 
 int console_init(void);

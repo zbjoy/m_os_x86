@@ -201,6 +201,11 @@ static void write_normal(console_t *console, char ch) {
     }
 }
 
+static void clear_esc_param(console_t* console) { // 清除 ESC 参数
+    kernel_memset(console->esc_param, 0, sizeof(console->esc_param)); // 清除 ESC 参数
+    console->curr_param_index = 0; // 当前参数索引
+}
+
 static void write_esc(console_t *console, char ch) {
     switch (ch) {
     case '7':
@@ -225,9 +230,51 @@ static void write_esc(console_t *console, char ch) {
     }
 }
 
-// ESC [pn
-static void write_esc_square(console_t* console, char c) {
+static void set_font_style(console_t* console) {
+    static const color_t color_table[] = {
+        COLOR_Black,
+        COLOR_Red,
+        COLOR_Green,
+        COLOR_Yellow,
+        COLOR_Blue,
+        COLOR_Magenta,
+        COLOR_Cyan,
+        COLOR_White
+    };
 
+    for (int i = 0; i < console->curr_param_index; i++) {
+        int param = console->esc_param[i];
+        if ((param >= 30) && (param <= 37)) {
+            console->foreground = color_table[param - 30]; // 设置前景色
+        } else if ((param >= 40) && (param <= 47)) {
+            console->background = color_table[param - 40]; // 设置背景色
+        } else if (param == 0x39) { 
+            console->foreground = COLOR_White; // 设置前景色为白色
+        } else if (param == 0x49) {
+            console->background = COLOR_Black; // 设置背景色为黑色
+        }
+    }
+}
+
+// ESC [pn (n 可以是 0-9 的数字) m 
+// eg: ESC [31;42m
+static void write_esc_square(console_t* console, char c) {
+    if ((c >= '0') && (c <= '9')) {
+        int* param = &console->esc_param[console->curr_param_index];
+        *param = *param * 10 + (c - '0'); // 计算参数值
+    } else if ((c == ';') && (console->curr_param_index < ESC_PARAM_MAX)) {
+        console->curr_param_index++; // 参数索引加 1
+    } else {
+        switch (c) {
+        case 'm':
+            set_font_style(console); // 设置字体样式
+            break;
+        default:
+            break;
+        }
+
+        console->write_state = CONSOLE_WRITE_NORMAL; // 恢复写入状态
+    }
 }
 
 // console: 写的是哪个控制台, data: 要写入的数据, size: 要写入的数据的长度
