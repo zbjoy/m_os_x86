@@ -111,6 +111,14 @@ static void clear_display(console_t* console) {
     }
 }
 
+static void erase_backword(console_t* console) {
+
+}
+
+static void move_backword(console_t* console, int n) {
+
+}
+
 // 初始化控制台
 int console_init(void) {
     for (int i = 0; i < CONSOLE_NR; i++) {
@@ -145,12 +153,23 @@ int console_write(int console, char* data, int size) {
         char ch = *data++;
 
         switch(ch) {
+        case 0x7F:
+            erase_backword(c); // 删除一个字符
+            break;
+        case '\b':
+            move_backword(c, 1); // 光标向后移动一格
+            break;
+        case '\r':
+            move_to_col0(c); // 光标移动到第一列
+            break;
         case '\n':
             move_to_col0(c);
             move_next_line(c);
             break;
         default:
-            show_char(c, ch);
+            if ((ch >= ' ') && (ch <= '~')) { // 可显示字符
+                show_char(c, ch);
+            }
             break;
         }
 

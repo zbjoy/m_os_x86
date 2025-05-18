@@ -8,6 +8,9 @@ int main(int argc, char** argv) {
     sbrk(4096 * 2 + 200);
     sbrk(4096 * 5 + 1234);
 
+    printf("abef\b\b\b\bcd\n"); // cdef
+    printf("abcd\x7f;fg\n"); // abc;fg
+
     printf("Hello World!!\n");
     printf("Hello From Shell!!\n");
     printf("os version: %s\n", "1.0.0");
