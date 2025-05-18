@@ -111,13 +111,28 @@ static void clear_display(console_t* console) {
     }
 }
 
+static int move_backword(console_t* console, int n) {
+    int status = -1;
+    for (int i = 0; i < n; ++i) {
+        if (console->cursor_col > 0) { // 不处于每一行的开头
+            console->cursor_col--;
+            status = 0;
+        } else if (console->cursor_col == 0 && console->cursor_row > 0) { // 处于每一行的开头, 并且不是第一行
+            console->cursor_row--;
+            console->cursor_col = console->display_cols - 1;
+            status = 0;
+        }
+    }
+    return status;
+}
+
 static void erase_backword(console_t* console) {
-
+    if (move_backword(console, 1) == 0) {
+        show_char(console, ' '); // 显示空格
+        move_forward(console, 1); // 光标向前移动一格
+    }
 }
 
-static void move_backword(console_t* console, int n) {
-
-}
 
 // 初始化控制台
 int console_init(void) {
