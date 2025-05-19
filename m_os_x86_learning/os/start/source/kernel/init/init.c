@@ -12,6 +12,7 @@
 #include "kernel/include/ipc/sem.h"
 #include "kernel/include/core/memory.h"
 #include "kernel/include/dev/console.h"
+#include "kernel/include/dev/kbd.h"
 
 void test() {
 
@@ -35,6 +36,8 @@ void kernel_init(boot_info_t *boot_info)
     time_init();
 
     task_manager_init();
+
+    kbd_init();
 }
 
 static task_t first_task;

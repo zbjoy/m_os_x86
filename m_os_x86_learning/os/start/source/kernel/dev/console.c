@@ -97,7 +97,6 @@ static void show_char(console_t* console, char c) {
     p->foreground = console->foreground; // 前景色
     p->background = console->background; // 背景色
     move_forward(console, 1);    // 光标向前移动一格
-
 }
 
 // 清除显示缓冲区
