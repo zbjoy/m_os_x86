@@ -312,7 +312,7 @@ static void write_esc_square(console_t* console, char c) {
             move_left(console, console->esc_param[0]); // 光标左移
             break;
         case 'C':
-            move_forward(console, console->esc_param[0]); // 光标右移
+            move_right(console, console->esc_param[0]); // 光标右移
             break;
         case 'H':
         case 'f':
