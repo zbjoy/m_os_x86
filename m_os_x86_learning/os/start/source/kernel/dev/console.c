@@ -256,6 +256,8 @@ static void set_font_style(console_t* console) {
     }
 }
 
+
+
 // ESC [pn (n 可以是 0-9 的数字) m 
 // eg: ESC [31;42m
 static void write_esc_square(console_t* console, char c) {
@@ -268,6 +270,19 @@ static void write_esc_square(console_t* console, char c) {
         switch (c) {
         case 'm':
             set_font_style(console); // 设置字体样式
+            break;
+        case 'D':
+            move_left(console, console->esc_param[0]); // 光标左移
+            break;
+        case 'C':
+            move_forward(console, console->esc_param[0]); // 光标右移
+            break;
+        case 'H':
+        case 'f':
+            move_cursor(console); // 移动光标到指定位置
+            break;
+        case 'J':
+            erase_in_display(console); // 擦除屏幕部分区域
             break;
         default:
             break;
