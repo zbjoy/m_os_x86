@@ -242,15 +242,15 @@ static void set_font_style(console_t* console) {
         COLOR_White
     };
 
-    for (int i = 0; i < console->curr_param_index; i++) {
+    for (int i = 0; i <= console->curr_param_index; i++) {
         int param = console->esc_param[i];
         if ((param >= 30) && (param <= 37)) {
             console->foreground = color_table[param - 30]; // 设置前景色
         } else if ((param >= 40) && (param <= 47)) {
             console->background = color_table[param - 40]; // 设置背景色
-        } else if (param == 0x39) { 
+        } else if (param == 39) { 
             console->foreground = COLOR_White; // 设置前景色为白色
-        } else if (param == 0x49) {
+        } else if (param == 49) {
             console->background = COLOR_Black; // 设置背景色为黑色
         }
     }
