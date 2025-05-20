@@ -2,6 +2,9 @@
 #include "kernel/include/cpu/irq.h"
 #include "kernel/include/tools/log.h"
 #include "comm/cpu_instr.h"
+#include "kernel/include/tools/klib.h"
+
+static kbd_state_t kbd_state; // 键盘状态
 
 // 通过键值映射实现对应键值的获取
 static const key_map_t map_table[] = {
@@ -60,6 +63,7 @@ static const key_map_t map_table[] = {
 };
 
 void kbd_init(void) {
+    kernel_memset(&kbd_state, 0, sizeof(kbd_state)); // 初始化键盘状态
     irq_install(IRQ1_KEYBOARD, (irq_handler_t)exception_handler_kbd);
     irq_enable(IRQ1_KEYBOARD);
 }
@@ -76,10 +80,20 @@ static void do_normal_key(uint8_t raw_code) {
     char key = get_key(raw_code);
     int is_make = is_make_code(raw_code);
     switch (key) {
+    case KEY_RSHIFT:
+        kbd_state.rshift_pressed = is_make ? 1 : 0; // 右 shift 键
+        break;
+    case KEY_LSHIFT:
+        kbd_state.lshift_pressed = is_make ? 1 : 0; // 左 shift 键
+        break;
     default:
         if (is_make) {
-            key = map_table[key].normal; // 普通按键
-            log_printf("key: %d\n", key);
+            if (kbd_state.lshift_pressed || kbd_state.rshift_pressed) { // 如果按下了 shift 键
+                key = map_table[key].func; // 第二功能
+            } else {
+                key = map_table[key].normal; // 普通按键
+            }
+            log_printf("key: %c\n", key);
         }
         break;
     }
@@ -94,6 +108,7 @@ void do_handler_kbd(exception_frame_t *frame) { // 通过汇编实现
     }
 
     uint8_t raw_code = inb(KBD_PORT_DATA); // 读取键盘数据端口
+    do_normal_key(raw_code);
     // log_printf("key code: %x\n", raw_code); // 打印键盘扫描码
 
     pic_send_eoi(IRQ1_KEYBOARD); // 发送结束信号
