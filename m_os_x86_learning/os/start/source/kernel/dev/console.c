@@ -110,6 +110,7 @@ static void clear_display(console_t* console) {
     }
 }
 
+// 向一个方向移动 n 格
 static int move_backword(console_t* console, int n) {
     int status = -1;
     for (int i = 0; i < n; ++i) {
@@ -125,6 +126,7 @@ static int move_backword(console_t* console, int n) {
     return status;
 }
 
+// 删除一个字符 (backspace 键功能)
 static void erase_backword(console_t* console) {
     if (move_backword(console, 1) == 0) {
         show_char(console, ' '); // 显示空格

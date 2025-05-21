@@ -1,4 +1,4 @@
-
+// C runtime startup code
     .text
     .global _start
     .extern cstart
