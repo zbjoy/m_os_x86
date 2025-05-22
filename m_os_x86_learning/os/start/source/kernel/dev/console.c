@@ -87,7 +87,7 @@ static void move_forward(console_t* console, int n) {
     }
 }
 
-// 光标向后移动 n 格
+// 显示字符 c 在 console 的当前光标位置
 static void show_char(console_t* console, char c) {
     // 获得显存的起始地址
     int offset = console->cursor_col + console->cursor_row * console->display_cols;
