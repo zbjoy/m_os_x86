@@ -5,6 +5,7 @@
 
 enum {
     DEV_UNKNOWN = 0,
+    DEV_TTY, 
 };
 
 struct _dev_desc_t; // 前向声明
