@@ -91,9 +91,6 @@ static void do_normal_key(uint8_t raw_code) {
             kbd_state.caps_lock = ~kbd_state.caps_lock; // 切换 caps lock 状态
         }
         break; // caps lock 键
-        /**
-         * -----------------------------------------------------------------
-         */
     case KEY_ALT: // alt 键
         kbd_state.lalt_press = is_make;
         break; 
@@ -113,10 +110,6 @@ static void do_normal_key(uint8_t raw_code) {
     case KEY_F11: // F11 键
     case KEY_F12: // F12 键
         break;
-
-        /**
-         * -----------------------------------------------------------------
-         */
     default:
         if (is_make) {
             if (kbd_state.lshift_pressed || kbd_state.rshift_pressed) { // 如果按下了 shift 键
