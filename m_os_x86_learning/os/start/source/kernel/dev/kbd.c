@@ -142,16 +142,10 @@ static void do_e0_key(uint8_t raw_code) {
     char key = get_key(raw_code);
     int is_make = is_make_code(raw_code);
     switch (key) {
-    case KEY_RSHIFT:
-        kbd_state.rshift_pressed = is_make ? 1 : 0; // 右 shift 键
-        break;
-    case KEY_LSHIFT:
-        kbd_state.lshift_pressed = is_make ? 1 : 0; // 左 shift 键
-        break;
-    case KEY_ALT: // alt 键
+    case KEY_ALT: // 右 alt 键
         kbd_state.ralt_press = is_make;
         break; 
-    case KEY_CTRL: // ctrl 键
+    case KEY_CTRL: // 右 ctrl 键
         kbd_state.rctrl_press = is_make;
         break;
     default:
