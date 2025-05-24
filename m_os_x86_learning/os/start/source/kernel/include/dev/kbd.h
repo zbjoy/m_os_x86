@@ -23,6 +23,10 @@ typedef struct _kbd_state_t {
     int caps_lock : 1; // caps lock 键是否被按下
     int lshift_pressed : 1; // 左 shift 键是否被按下
     int rshift_pressed : 1; // 右 shift 键是否被按下
+    int lalt_press : 1; // 左 alt 键是否被按下
+    int ralt_press : 1; // 右 alt 键是否被按下
+    int lctrl_press : 1; // 左 ctrl 键是否被按下
+    int rctrl_press : 1; // 右 ctrl 键是否被按下
 } kbd_state_t;
 
 void kbd_init(void); // 初始化键盘

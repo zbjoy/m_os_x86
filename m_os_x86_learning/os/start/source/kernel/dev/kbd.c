@@ -91,6 +91,32 @@ static void do_normal_key(uint8_t raw_code) {
             kbd_state.caps_lock = ~kbd_state.caps_lock; // 切换 caps lock 状态
         }
         break; // caps lock 键
+        /**
+         * -----------------------------------------------------------------
+         */
+    case KEY_ALT: // alt 键
+        kbd_state.lalt_press = is_make;
+        break; 
+    case KEY_CTRL: // ctrl 键
+        kbd_state.lctrl_press = is_make;
+        break;
+    case KEY_F1: // F1 键
+    case KEY_F2: // F2 键
+    case KEY_F3: // F3 键
+    case KEY_F4: // F4 键
+    case KEY_F5: // F5 键
+    case KEY_F6: // F6 键
+    case KEY_F7: // F7 键
+    case KEY_F8: // F8 键
+    case KEY_F9: // F9 键
+    case KEY_F10: // F10 键
+    case KEY_F11: // F11 键
+    case KEY_F12: // F12 键
+        break;
+
+        /**
+         * -----------------------------------------------------------------
+         */
     default:
         if (is_make) {
             if (kbd_state.lshift_pressed || kbd_state.rshift_pressed) { // 如果按下了 shift 键
@@ -112,8 +138,34 @@ static void do_normal_key(uint8_t raw_code) {
     }
 }
 
+static void do_e0_key(uint8_t raw_code) {
+    char key = get_key(raw_code);
+    int is_make = is_make_code(raw_code);
+    switch (key) {
+    case KEY_RSHIFT:
+        kbd_state.rshift_pressed = is_make ? 1 : 0; // 右 shift 键
+        break;
+    case KEY_LSHIFT:
+        kbd_state.lshift_pressed = is_make ? 1 : 0; // 左 shift 键
+        break;
+    case KEY_ALT: // alt 键
+        kbd_state.ralt_press = is_make;
+        break; 
+    case KEY_CTRL: // ctrl 键
+        kbd_state.rctrl_press = is_make;
+        break;
+    default:
+        break;
+    }
+}
+
 
 void do_handler_kbd(exception_frame_t *frame) { // 通过汇编实现
+    static enum {
+        NORMAL, 
+        BEGIN_E0,
+        BBEGIN_E1,
+    } recv_state = NORMAL;
     uint32_t status = inb(KBD_PORT_STAT); // 读取键盘状态端口
     if (!(status & KBD_STAT_RECV_READY)) { // 是其他事情(不是键盘导致的中断)
         pic_send_eoi(IRQ1_KEYBOARD); // 发送结束信号
@@ -121,8 +173,29 @@ void do_handler_kbd(exception_frame_t *frame) { // 通过汇编实现
     }
 
     uint8_t raw_code = inb(KBD_PORT_DATA); // 读取键盘数据端口
-    do_normal_key(raw_code);
+    // do_normal_key(raw_code);
     // log_printf("key code: %x\n", raw_code); // 打印键盘扫描码
 
     pic_send_eoi(IRQ1_KEYBOARD); // 发送结束信号
+
+    if (raw_code == KEY_E0) {
+        recv_state = BEGIN_E0;
+    } else if (raw_code == KEY_E1) {
+        recv_state = BBEGIN_E1;
+    } else {
+        switch (recv_state) {
+        case NORMAL:
+            do_normal_key(raw_code);
+            break;
+        case BEGIN_E0:
+            do_e0_key(raw_code);
+            recv_state = NORMAL;
+            break;
+        case BBEGIN_E1: // TODO: 处理 E1 键
+            recv_state = NORMAL;
+            break;
+        default:
+            break;
+        }
+    }
 }
