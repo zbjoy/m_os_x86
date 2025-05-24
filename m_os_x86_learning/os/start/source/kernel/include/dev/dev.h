@@ -5,7 +5,7 @@
 
 enum {
     DEV_UNKNOWN = 0,
-}
+};
 
 struct _dev_desc_t; // 前向声明
 // device_t 描述了设备的详细类型
@@ -23,7 +23,7 @@ typedef struct _dev_desc_t {
     char name[DEV_NAME_SIZE]; // 设备名称
     int major; // 主设备号 (表示设备类型 eg: 硬盘, 显示器等)
     
-    int (*open)(devcie_t* dev);
+    int (*open)(device_t* dev);
     int (*read)(device_t* dev, int addr, char* buf, int size);
     int (*write)(device_t* dev, int addr, char* buf, int size);
     int (*control)(device_t* dev, int cmd, int arg0, int arg1);
