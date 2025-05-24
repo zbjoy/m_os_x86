@@ -12,6 +12,7 @@
 
 #define KEY_RSHIFT 0x36 // 右 shift 键
 #define KEY_LSHIFT 0x2A // 左 shift 键
+#define KEY_CAPS 0x3A // caps lock 键
 
 typedef struct _key_map_t {
     uint8_t normal; // 普通按键 (eg: 对于字母取 未按下 shift 时的 ASCII 码)
@@ -19,6 +20,7 @@ typedef struct _key_map_t {
 } key_map_t;
 
 typedef struct _kbd_state_t {
+    int caps_lock : 1; // caps lock 键是否被按下
     int lshift_pressed : 1; // 左 shift 键是否被按下
     int rshift_pressed : 1; // 右 shift 键是否被按下
 } kbd_state_t;

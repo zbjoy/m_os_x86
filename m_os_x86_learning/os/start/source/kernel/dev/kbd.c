@@ -86,12 +86,25 @@ static void do_normal_key(uint8_t raw_code) {
     case KEY_LSHIFT:
         kbd_state.lshift_pressed = is_make ? 1 : 0; // 左 shift 键
         break;
+    case KEY_CAPS:
+        if (is_make) {
+            kbd_state.caps_lock = ~kbd_state.caps_lock; // 切换 caps lock 状态
+        }
+        break; // caps lock 键
     default:
         if (is_make) {
             if (kbd_state.lshift_pressed || kbd_state.rshift_pressed) { // 如果按下了 shift 键
                 key = map_table[key].func; // 第二功能
             } else {
                 key = map_table[key].normal; // 普通按键
+            }
+
+            if (kbd_state.caps_lock) { // 如果 caps lock 键被按下
+                if ((key >= 'A') && (key <= 'Z')) { // 如果是大写字母
+                    key = key - 'A' + 'a'; // 转换为小写字母
+                } else if ((key >= 'a') && (key <= 'z')) { // 如果是小写字母
+                    key = key - 'a' + 'A'; // 转换为大写字母
+                }
             }
             log_printf("key: %c\n", key);
         }
