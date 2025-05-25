@@ -3,6 +3,7 @@
 
 #define DEV_NAME_SIZE 32 // 设备名称的最大长度
 
+// 用来 describe 设备的类型
 enum {
     DEV_UNKNOWN = 0,
     DEV_TTY, 

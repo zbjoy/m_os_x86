@@ -2,6 +2,7 @@
 
 extern dev_desc_t dev_tty_desc; // tty 设备描述符
 
+// 设备操作函数
 int dev_open(int major, int minor, void* data) { // 返回设备 id (dev_id)
     return -1;
 }

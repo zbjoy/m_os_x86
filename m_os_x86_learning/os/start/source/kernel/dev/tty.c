@@ -2,6 +2,7 @@
 #include "kernel/include/dev/dev.h"
 
 
+// tty 设备操作函数
 int tty_open(device_t* dev) {
     return 0;
 }
