@@ -63,9 +63,13 @@ static const key_map_t map_table[] = {
 };
 
 void kbd_init(void) {
-    kernel_memset(&kbd_state, 0, sizeof(kbd_state)); // 初始化键盘状态
-    irq_install(IRQ1_KEYBOARD, (irq_handler_t)exception_handler_kbd);
-    irq_enable(IRQ1_KEYBOARD);
+    static int inited = 0;
+    if (!inited) {
+        kernel_memset(&kbd_state, 0, sizeof(kbd_state)); // 初始化键盘状态
+        irq_install(IRQ1_KEYBOARD, (irq_handler_t)exception_handler_kbd);
+        irq_enable(IRQ1_KEYBOARD);
+        inited = 1; // 标记为已初始化
+    }
 }
 
 static inline int is_make_code(uint8_t key_code) {

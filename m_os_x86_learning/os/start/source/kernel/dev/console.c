@@ -136,31 +136,41 @@ static void erase_backword(console_t* console) {
 
 
 // 初始化控制台
-int console_init(void) {
-    for (int i = 0; i < CONSOLE_NR; i++) {
-        console_t* console = console_buf + i;
+int console_init(int idx) {
+    // for (int i = 0; i < CONSOLE_NR; i++) {
+    // console_t *console = console_buf + i;
+    console_t *console = console_buf + idx;
 
-        console->display_cols = CONSOLE_COL_MAX;
-        console->display_rows = CONSOLE_ROW_MAX;
+    console->display_cols = CONSOLE_COL_MAX;
+    console->display_rows = CONSOLE_ROW_MAX;
 
-        console->foreground = COLOR_White; // 前景色
-        console->background = COLOR_Black; // 背景色
+    console->foreground = COLOR_White; // 前景色
+    console->background = COLOR_Black; // 背景色
 
-        // 读取当前光标位置
+    // 读取当前光标位置
+    if (idx == 0) {
         int cursor_pos = read_cursor_pos();
 
         // 光标位置初始化
         console->cursor_row = cursor_pos / console->display_cols;
         console->cursor_col = cursor_pos % console->display_cols;
-
-        console->old_cursor_col = console->cursor_col;
-        console->old_cursor_row = console->cursor_row;
-        console->write_state = CONSOLE_WRITE_NORMAL; // 写入状态
-
-        console->disp_base = (disp_char_t*)(CONSOLE_DISP_ADDR + i * (CONSOLE_COL_MAX * CONSOLE_ROW_MAX)); // disp_char_t 是一个 2 字节的结构体, 每次给它的指针 +1 相当于加 2 个字节, 这里是一个 80 * 25 的显示缓冲区
-
-        // clear_display(console);
+    } else {
+        // 光标位置初始化
+        console->cursor_row = 0;
+        console->cursor_col = 0;
+        clear_display(console); // 清除显示缓冲区
+        update_cursor_pos(console); // 更新光标位置
     }
+    
+
+    console->old_cursor_col = console->cursor_col;
+    console->old_cursor_row = console->cursor_row;
+    console->write_state = CONSOLE_WRITE_NORMAL; // 写入状态
+
+    console->disp_base = (disp_char_t *)(CONSOLE_DISP_ADDR + idx * (CONSOLE_COL_MAX * CONSOLE_ROW_MAX)); // disp_char_t 是一个 2 字节的结构体, 每次给它的指针 +1 相当于加 2 个字节, 这里是一个 80 * 25 的显示缓冲区
+
+    // clear_display(console);
+    // }
     return 0;
 }
 

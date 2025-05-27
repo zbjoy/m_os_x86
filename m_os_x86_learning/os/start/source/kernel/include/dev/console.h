@@ -61,7 +61,7 @@ typedef struct _console_t {
     int curr_param_index; // 确定当前再对哪个参数进行索引
 } console_t;
 
-int console_init(void);
+int console_init(int idx);
 int console_write(int console, char* data, int size); // console: 写的是哪个控制台, data: 要写入的数据, size: 要写入的数据的长度
 void console_clear(int console); // console: 要清除的控制台(句柄)
 

@@ -18,6 +18,8 @@ typedef struct _tty_t {
     tty_fifo_t ofifo; // 输出 FIFO 缓存
     char ibuf[TTY_IBUF_SIZE]; // 输入缓冲区
     tty_fifo_t ifofo;  // 输入 FIFO 缓存
+
+    int console_idx; // 关联的控制台索引
 } tty_t;
 
 #endif
