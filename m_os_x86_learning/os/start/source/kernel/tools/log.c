@@ -5,14 +5,19 @@
 #include "kernel/include/cpu/irq.h"
 #include "kernel/include/ipc/mutex.h"
 #include "kernel/include/dev/console.h"
+#include "kernel/include/dev/dev.h"
 
 static mutex_t mutex;
 
 #define LOG_USE_COM 0
 #define COM1_PORT 0x3F8
 
+static int log_dev_id;
+
 void log_init(void) {
     mutex_init(&mutex);
+
+    log_dev_id = dev_open(DEV_TTY, 0, (void*)0); // 打开 tty 设备
 
 #if LOG_USE_COM
     outb(COM1_PORT + 1, 0x00); // 关掉串行接口内部的中断
@@ -49,9 +54,11 @@ void log_printf(const char *fmt,...) {
     outb(COM1_PORT, '\r'); // 输出回车符
     outb(COM1_PORT, '\n'); // 输出换行符
 #else 
-    console_write(0, str_buf, kernel_strlen(str_buf)); // 直接输出到控制台
+    // console_write(0, str_buf, kernel_strlen(str_buf)); // 直接输出到控制台
+    dev_write(log_dev_id, 0, str_buf, kernel_strlen(str_buf)); // 写入日志设备
     char ch = '\n';
-    console_write(0, &ch, 1); // 输出换行符
+    // console_write(0, &ch, 1); // 输出换行符
+    dev_write(log_dev_id, 0, &ch, 1); // 写入日志设备
 #endif
 
     // 退出临界区, 恢复中断

@@ -2,7 +2,9 @@
 #include "kernel/include/dev/dev.h"
 
 
-// tty 设备操作函数
+static tty_t tty_devs[TTY_NR]; // 终端设备数组
+
+// tty 设备操作函数 (显示屏 与 键盘设备)
 int tty_open(device_t* dev) {
     return 0;
 }

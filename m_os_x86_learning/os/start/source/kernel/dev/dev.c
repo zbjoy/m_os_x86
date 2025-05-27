@@ -2,6 +2,12 @@
 #include "kernel/include/cpu/irq.h"
 #include "kernel/include/tools/klib.h"
 
+/**
+ * 
+ * 设备管理模块 (设备管理层)
+ * 
+ */
+
 #define DEV_TABLE_SIZE 128 // 设备表大小
 
 extern dev_desc_t dev_tty_desc; // tty 设备描述符
