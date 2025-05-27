@@ -23,8 +23,9 @@ void kernel_init(boot_info_t *boot_info)
     // ASSERT(boot_info->ram_region_count != 0);
 
     cpu_init();
+    irq_init();
     log_init();
-    console_init();
+    // console_init();
 
     // *(uint8_t*)test = 0x12; 
     
@@ -32,7 +33,6 @@ void kernel_init(boot_info_t *boot_info)
 
     // *(uint8_t*)test = 0x34; 
 
-    irq_init();
     time_init();
 
     task_manager_init();
