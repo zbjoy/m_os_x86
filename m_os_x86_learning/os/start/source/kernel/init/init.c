@@ -37,7 +37,7 @@ void kernel_init(boot_info_t *boot_info)
 
     task_manager_init();
 
-    kbd_init();
+    // kbd_init();
 }
 
 static task_t first_task;

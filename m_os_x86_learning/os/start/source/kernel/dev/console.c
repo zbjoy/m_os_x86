@@ -2,7 +2,8 @@
 #include "kernel/include/tools/klib.h"
 #include "comm/cpu_instr.h"
 
-#define CONSOLE_NR 1 // 目前只做一个屏幕的处理
+// #define CONSOLE_NR 1 // 目前只做一个屏幕的处理
+#define CONSOLE_NR 8 // 与 tty 数量一致, TTY_NR 为 8
 
 static console_t console_buf[CONSOLE_NR];
 
