@@ -342,12 +342,18 @@ static void write_esc_square(console_t* console, char c) {
 }
 
 // console: 写的是哪个控制台, data: 要写入的数据, size: 要写入的数据的长度
-int console_write(int console, char* data, int size) {
-    console_t* c = console_buf + console;
-    int len;
+int console_write(tty_t* tty) {
+    console_t* c = console_buf + tty->console_idx; // 获取控制台
+    int len = 0;
 
-    for (len = 0; len < size; len++) {
-        char ch = *data++;
+    do {
+        char ch;
+        int err = tty_fifo_get(&tty->ofifo, &ch);
+        if (err < 0) {
+            break;
+        }
+
+        sem_notify(&tty->osem); // 通知输出信号量, 表示有数据可以输出
 
         switch (c->write_state) {
         case CONSOLE_WRITE_NORMAL:
@@ -362,12 +368,31 @@ int console_write(int console, char* data, int size) {
         default:
             break;
         }
+        len++;
+    } while (1);
+
+    // for (len = 0; len < size; len++) {
+    //     char ch = *data++;
+
+    //     switch (c->write_state) {
+    //     case CONSOLE_WRITE_NORMAL:
+    //         write_normal(c, ch);
+    //         break;
+    //     case CONSOLE_WRITE_ESC:
+    //         write_esc(c, ch);
+    //         break;
+    //     case CONSOLE_WRITE_SQUARE:
+    //         write_esc_square(c, ch);
+    //         break;
+    //     default:
+    //         break;
+    //     }
 
 
-        // TODO: 处理控制字符
-        // show_char(c, ch);
+    //     // TODO: 处理控制字符
+    //     // show_char(c, ch);
 
-    }
+    // }
     
     update_cursor_pos(c); // 更新光标位置
     return len;

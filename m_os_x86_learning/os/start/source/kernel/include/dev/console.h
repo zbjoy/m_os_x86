@@ -2,6 +2,7 @@
 #define CONSOLE_H
 
 #include "comm/types.h"
+#include "kernel/include/dev/tty.h"
 
 #define CONSOLE_DISP_ADDR 0xb8000
 #define CONSOLE_DISP_END (0xb8000 + 32 * 1024)
@@ -62,7 +63,8 @@ typedef struct _console_t {
 } console_t;
 
 int console_init(int idx);
-int console_write(int console, char* data, int size); // console: 写的是哪个控制台, data: 要写入的数据, size: 要写入的数据的长度
+// int console_write(int console, char* data, int size); // console: 写的是哪个控制台, data: 要写入的数据, size: 要写入的数据的长度
+int console_write(tty_t* tty); // console: 写的是哪个控制台, data: 要写入的数据, size: 要写入的数据的长度
 void console_clear(int console); // console: 要清除的控制台(句柄)
 
 #endif

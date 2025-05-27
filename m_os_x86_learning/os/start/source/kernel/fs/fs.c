@@ -61,7 +61,9 @@ int sys_write(int file, char* ptr, int len) {
         // 这里不再进行串口输出, 改为控制台输出
         // ptr[len] = '\0';       // 确保字符串以 null 结尾
         // log_printf("%s", ptr); // 打印到日志
-        console_write(0, ptr, len); // 写入控制台, 目前只有一个控制台, 所以第一个参数直接写0
+        // console_write(0, ptr, len); // 写入控制台, 目前只有一个控制台, 所以第一个参数直接写0
+        ptr[len] = '\0';       // 确保字符串以 null 结尾
+        log_printf("%s", ptr); // 打印到日志
     }
     return -1; // 其他文件暂不支持
 }
