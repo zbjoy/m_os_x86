@@ -23,6 +23,19 @@ void tty_fifo_init(tty_fifo_t* fifo, char* buf, int size) {
     fifo->read = fifo->write = 0;  // 读写指针初始化
 }
 
+int tty_fifo_get(tty_fifo_t* fifo, char* c) {
+    if (fifo->count <= 0) {
+        return -1; // 缓冲区为空
+    }
+
+    *c = fifo->buf[fifo->read++]; // 读取字符
+    if (fifo->read >= fifo->size) {
+        fifo->read = 0; // 循环读取
+    }
+    fifo->count--; // 减少字符计数
+    return 0; // 成功
+}
+
 int tty_fifo_put(tty_fifo_t* fifo, char c) {
     if (fifo->count >= fifo->size) {
         return -1; // 缓冲区已满
@@ -36,18 +49,6 @@ int tty_fifo_put(tty_fifo_t* fifo, char c) {
     return 0; // 成功
 }
 
-int tty_fifo_get(tty_fifo_t* fifo, char* c) {
-    if (fifo->count <= 0) {
-        return -1; // 缓冲区为空
-    }
-
-    *c = fifo->buf[fifo->read++]; // 读取字符
-    if (fifo->read >= fifo->size) {
-        fifo->read = 0; // 循环读取
-    }
-    fifo->count--; // 减少字符计数
-    return 0; // 成功
-}
 
 // tty 设备操作函数 (显示屏 与 键盘设备)
 int tty_open(device_t* dev) {
