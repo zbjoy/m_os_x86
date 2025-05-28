@@ -20,7 +20,7 @@ typedef struct _tty_t {
     tty_fifo_t ofifo; // 输出 FIFO 缓存
     sem_t osem; // 输出信号量, 用于控制输出操作
     char ibuf[TTY_IBUF_SIZE]; // 输入缓冲区
-    tty_fifo_t ifofo;  // 输入 FIFO 缓存
+    tty_fifo_t ififo;  // 输入 FIFO 缓存
 
     int console_idx; // 关联的控制台索引
 } tty_t;

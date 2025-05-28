@@ -145,6 +145,8 @@ int console_init(int idx) {
     console->display_cols = CONSOLE_COL_MAX;
     console->display_rows = CONSOLE_ROW_MAX;
 
+    console->disp_base = (disp_char_t *)CONSOLE_DISP_ADDR + idx * CONSOLE_COL_MAX * CONSOLE_ROW_MAX; // disp_char_t 是一个 2 字节的结构体, 每次给它的指针 +1 相当于加 2 个字节, 这里是一个 80 * 25 的显示缓冲区
+
     console->foreground = COLOR_White; // 前景色
     console->background = COLOR_Black; // 背景色
 
@@ -168,7 +170,6 @@ int console_init(int idx) {
     console->old_cursor_row = console->cursor_row;
     console->write_state = CONSOLE_WRITE_NORMAL; // 写入状态
 
-    console->disp_base = (disp_char_t *)(CONSOLE_DISP_ADDR + idx * (CONSOLE_COL_MAX * CONSOLE_ROW_MAX)); // disp_char_t 是一个 2 字节的结构体, 每次给它的指针 +1 相当于加 2 个字节, 这里是一个 80 * 25 的显示缓冲区
 
     // clear_display(console);
     // }

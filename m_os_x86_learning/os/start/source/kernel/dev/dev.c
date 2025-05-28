@@ -21,13 +21,14 @@ static dev_desc_t* dev_desc_tbl[] = {
 static device_t dev_tbl[DEV_TABLE_SIZE]; // 设备表
 
 static int is_devid_bad(int dev_id) {
-    if ((dev_id < 0) || (dev_id >= DEV_TABLE_SIZE)) {
+    if ((dev_id < 0) || (dev_id >= sizeof(dev_tbl) / sizeof(dev_tbl[0]))) {
         return 1; // 设备 id 越界
     }
 
     if (dev_tbl[dev_id].desc == (dev_desc_t*)0) {
         return 1; // 设备描述符为空
     }
+    return 0; // 设备 id 合法
 }
 
 // 设备操作函数

@@ -28,7 +28,7 @@ int tty_fifo_put(tty_fifo_t* fifo, char c) {
         return -1; // 缓冲区已满
     }
 
-    fifo->buf[fifo->write] = c; // 写入字符
+    fifo->buf[fifo->write++] = c; // 写入字符
     if (fifo->write >= fifo->size) {
         fifo->write = 0;
     }
@@ -60,7 +60,7 @@ int tty_open(device_t* dev) {
     tty_t* tty = tty_devs + idx; // 获取 tty 设备
     tty_fifo_init(&tty->ofifo, tty->obuf, TTY_OBUF_SIZE); // 初始化输出缓冲区
     sem_init(&tty->osem, TTY_OBUF_SIZE); // 初始化输出信号量
-    tty_fifo_init(&tty->ifofo, tty->ibuf, TTY_IBUF_SIZE); // 初始化输入缓冲区
+    tty_fifo_init(&tty->ififo, tty->ibuf, TTY_IBUF_SIZE); // 初始化输入缓冲区
     tty->console_idx = idx; // 记录当前控制台设备索引
 
     kbd_init(); // 初始化键盘
@@ -102,7 +102,8 @@ int tty_write(device_t* dev, int addr, char* buf, int size) {
 
         console_write(tty);
     }
-    return size;
+    // return size;
+    return len;
 }
 
 int tty_control(device_t* dev, int cmd, int arg0, int arg1) {
