@@ -16,6 +16,31 @@ static task_manager_t task_manager;
 static task_t task_table[TASK_NR]; // 任务表, 用于存放所有的任务
 static mutex_t task_table_mutex; // 任务表的互斥锁
 
+file_t* task_file(int fd) { // 获取进程打开的文件
+    if ((fd >= 0) && (fd < TASK_OFILE_NR)) {
+        file_t* file = task_current()->file_table[fd];
+        return file; // 返回文件指针
+    }
+    return (file_t*)0;
+}
+int task_alloc_fd(file_t* file) { // 分配进程打开的文件描述符
+    task_t* task = task_current();
+    for (int i = 0; i < TASK_OFILE_NR; i++) {
+        file_t* p = task->file_table[i];
+        if (p == (file_t*)0) { // 找到一个空闲的文件描述符
+            task->file_table[i] = file; // 分配文件描述符
+            // file->ref++; // 增加文件引用计数
+            return i; // 返回文件描述符
+        }
+    }
+    return -1;
+}
+void task_remove_fd(int fd) { // 关闭进程打开的文件描述符
+    if ((fd >= 0) && (fd < TASK_OFILE_NR)) {
+        task_current()->file_table[fd] = (file_t*)0; // 将文件描述符置为 NULL
+    }
+}
+
 static int tss_init(task_t* task, int flag, uint32_t entry, uint32_t esp) {
     int tss_sel = gdt_alloc_desc();
     if (tss_sel < 0) {
@@ -106,6 +131,8 @@ int task_init(task_t *task, const char* name, int flag, uint32_t entry, uint32_t
     list_node_init(&task->run_node);
     list_node_init(&task->wait_node);
     list_node_init(&task->all_node);
+
+    kernel_memset(&task->file_table, 0, sizeof(task->file_table)); // 初始化 打开文件表
 
     // 属于临界区, 必须使用临界区保护
     irq_state_t state = irq_enter_protection();
