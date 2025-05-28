@@ -61,6 +61,7 @@ int tty_open(device_t* dev) {
     tty_fifo_init(&tty->ofifo, tty->obuf, TTY_OBUF_SIZE); // 初始化输出缓冲区
     sem_init(&tty->osem, TTY_OBUF_SIZE); // 初始化输出信号量
     tty_fifo_init(&tty->ififo, tty->ibuf, TTY_IBUF_SIZE); // 初始化输入缓冲区
+    tty->oflags = TTY_OCRLF; // 设置输出标志, 开启回车换行
     tty->console_idx = idx; // 记录当前控制台设备索引
 
     kbd_init(); // 初始化键盘
@@ -84,6 +85,14 @@ int tty_write(device_t* dev, int addr, char* buf, int size) {
     int len = 0;
     while (size) {
         char c = *buf++;
+
+        if ((c == '\n') && (tty->oflags & TTY_OCRLF)) { // 如果是换行符, 且开启了输出回车换行标志
+            sem_wait(&tty->osem); // 等待输出信号量, 确保输出缓冲区有空间
+            int err = tty_fifo_put(&tty->ofifo, '\r'); // 输出回车符
+            if (err < 0) {
+                break;
+            }
+        }
 
         sem_wait(&tty->osem); // 等待输出信号量, 确保输出缓冲区有空间
 
