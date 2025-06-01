@@ -41,7 +41,7 @@ static void read_disk(uint32_t sector, uint32_t sector_count, uint8_t *buf)
     }
 }
 
-static is_path_valid(const char* path) {
+static int is_path_valid(const char* path) {
     if ((path == (const char*)0) || (path[0] == '\0')) {
         return 0; // 空路径不合法
     }
