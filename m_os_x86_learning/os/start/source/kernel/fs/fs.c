@@ -120,6 +120,7 @@ int sys_write(int file, char* ptr, int len) {
         // ptr[len] = '\0';       // 确保字符串以 null 结尾
         // log_printf("%s", ptr); // 打印到日志
     // }
+    file = 0;
     file_t* p_file = task_file(file);
     if (!p_file) {
         log_printf("file not opened");

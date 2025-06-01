@@ -26,6 +26,7 @@ int main(int argc, char** argv) {
     printf("\033[2J\n"); // 清屏
 
 #endif
+    open("tty:0", 0); // 打开终端设备
 
     printf("Hello World!!\n");
     printf("Hello From Shell!!\n");
@@ -39,7 +40,6 @@ int main(int argc, char** argv) {
     // fork();
     // yield();
 
-    open("tty:0", 0); // 打开终端设备
 
     for (;;) {
         printf("shell pid = %d\n", getpid());
