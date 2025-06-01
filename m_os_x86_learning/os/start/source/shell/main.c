@@ -2,6 +2,7 @@
 #include <stdio.h>
 
 int main(int argc, char** argv) {
+#if 0
     sbrk(0);
     sbrk(100);
     sbrk(200);
@@ -24,17 +25,21 @@ int main(int argc, char** argv) {
 
     printf("\033[2J\n"); // 清屏
 
+#endif
+
     printf("Hello World!!\n");
     printf("Hello From Shell!!\n");
     printf("os version: %s\n", "1.0.0");
     printf("%d %d %d\n", 1, 2, 3);
 
-    for (int i = 0; i < argc; i++) {
-        printf("arg = %s\n", (int)argv[i]);
-    }
+    // for (int i = 0; i < argc; i++) {
+    //     printf("arg = %s\n", (int)argv[i]);
+    // }
 
-    fork();
-    yield();
+    // fork();
+    // yield();
+
+    open("tty:0", 0); // 打开终端设备
 
     for (;;) {
         printf("shell pid = %d\n", getpid());

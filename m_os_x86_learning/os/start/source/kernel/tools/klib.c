@@ -57,7 +57,7 @@ void kernel_strncpy(char *dest, const char *src, int size)
     }
 }
 
-int strncmp(const char *s1, const char *s2, int size)
+int kernel_strncmp(const char *s1, const char *s2, int size)
 {
     if (!s1 ||!s2) {
         return -1;

@@ -6,6 +6,9 @@
 #include <sys/stat.h>
 #include "kernel/include/dev/console.h"
 #include "kernel/include/fs/file.h"
+#include "kernel/include/core/task.h"
+#include "kernel/include/dev/dev.h"
+#include "kernel/include/tools/log.h"
 
 // #define TEMP_ADDR (8 * 1024 * 1024) // 8MB
 static uint8_t TEMP_ADDR[100 * 1024]; // 100KB
@@ -38,12 +41,64 @@ static void read_disk(uint32_t sector, uint32_t sector_count, uint8_t *buf)
     }
 }
 
-int sys_open(const char* name, int flags, ...) {
-    if (name[0] == '/') { // 说明是读取 shell.elf 文件
-        read_disk(5000, 80, (uint8_t*)TEMP_ADDR);
-        temp_pos = (uint8_t*)TEMP_ADDR; // 设置临时地址指针
-        return TEMP_FILE_ID; // 返回临时文件ID
+static is_path_valid(const char* path) {
+    if ((path == (const char*)0) || (path[0] == '\0')) {
+        return 0; // 空路径不合法
     }
+    return 1;
+}
+
+int sys_open(const char* name, int flags, ...) {
+    if (kernel_strncmp(name, "tty", 3) == 0) {
+        if (!is_path_valid(name)) {
+            log_printf("sys_open: path is valid");
+            return -1; // 路径不合法
+        }
+
+        int fd = -1;
+        file_t* file = file_alloc(); // 分配文件结构
+        if (file) {
+            fd = task_alloc_fd(file); // 分配文件描述符
+            if (fd < 0) {
+                goto sys_open_failed; 
+            }
+        } else {
+            goto sys_open_failed;
+        }
+
+        if (kernel_strlen(name) < 5) {
+            goto sys_open_failed; // 路径长度不合法
+        }
+        int num = name[4] - '0';
+        int dev_id = dev_open(DEV_TTY, num, 0); // 打开设备
+        if (dev_id < 0) {
+            goto sys_open_failed; // 打开设备失败
+        }
+
+        file->dev_id = dev_id;
+        file->mode = 0; // TODO: 后续可能会调整成 flags 的值
+        file->pos = 0; // 文件指针置零
+        file->ref = 1; // 引用计数置为 1
+        file->type = FILE_TTY; // 文件类型为普通文件
+        kernel_strncpy(file->file_name, name, FILE_NAME_SIZE); // 设置文件名
+        return fd;
+sys_open_failed:
+        if (file) {
+            file_free(file);
+        }
+
+        if (fd >= 0) {
+            task_remove_fd(fd);
+        }
+        return -1; // 打开失败
+    } else {
+        if (name[0] == '/') { // 说明是读取 shell.elf 文件
+            read_disk(5000, 80, (uint8_t *)TEMP_ADDR);
+            temp_pos = (uint8_t *)TEMP_ADDR; // 设置临时地址指针
+            return TEMP_FILE_ID;             // 返回临时文件ID
+        }
+    }
+
     return -1; // 其他文件暂不支持
 }
 
@@ -56,7 +111,6 @@ int sys_read(int file, char* ptr, int len) {
     return -1; // 其他文件暂不支持
 }
 
-#include "kernel/include/tools/log.h"
 int sys_write(int file, char* ptr, int len) {
     if (file == 1) {
         // 这里不再进行串口输出, 改为控制台输出
