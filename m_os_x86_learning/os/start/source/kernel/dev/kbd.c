@@ -21,7 +21,7 @@ static const key_map_t map_table[] = {
     [0x0B] = {'0', ')'},
     [0x0C] = {'-', '_'},
     [0x0D] = {'=', '+'},
-    [0x0E] = {'\b', '\b'}, // 退格键 backspace
+    [0x0E] = {0x7F, 0x7F}, // 退格键 backspace
     [0x0F] = {'\t', '\t'},
     // 对于字母, 需要判断是否已经按下 shift 键
     [0x10] = {'q', 'Q'},
