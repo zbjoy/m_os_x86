@@ -128,7 +128,6 @@ int sys_write(int file, char* ptr, int len) {
         // ptr[len] = '\0';       // 确保字符串以 null 结尾
         // log_printf("%s", ptr); // 打印到日志
     // }
-    file = 0;
     file_t* p_file = task_file(file);
     if (!p_file) {
         log_printf("file not opened");
@@ -159,7 +158,7 @@ int sys_fstat(int file, struct stat* st) {
 }
 
 int sys_dup(int file) {
-    if ((file < 0) && (file >= TASK_OFILE_NR)) {
+    if ((file < 0) || (file >= TASK_OFILE_NR)) {
         log_printf("file %d is not valid", file);
         return -1; // 文件描述符不合法
     }
