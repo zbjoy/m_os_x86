@@ -38,6 +38,7 @@ int main(int argc, char** argv) {
     printf("Hello From Shell!!\n");
     printf("os version: %s\n", "1.0.0");
     printf("%d %d %d\n", 1, 2, 3);
+    fprintf(stderr, "error");
 
     // for (int i = 0; i < argc; i++) {
     //     printf("arg = %s\n", (int)argv[i]);
