@@ -3,6 +3,7 @@
 #include "kernel/include/tools/log.h"
 #include "comm/cpu_instr.h"
 #include "kernel/include/tools/klib.h"
+#include "kernel/include/dev/tty.h"
 
 static kbd_state_t kbd_state; // 键盘状态
 

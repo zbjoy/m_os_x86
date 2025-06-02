@@ -62,7 +62,7 @@ int tty_open(device_t* dev) {
     tty_fifo_init(&tty->ofifo, tty->obuf, TTY_OBUF_SIZE); // 初始化输出缓冲区
     sem_init(&tty->osem, TTY_OBUF_SIZE); // 初始化输出信号量
     tty_fifo_init(&tty->ififo, tty->ibuf, TTY_IBUF_SIZE); // 初始化输入缓冲区
-    sem_init(&tty->isem, TTY_IBUF_SIZE); // 初始化输入信号量
+    sem_init(&tty->isem, 0); // 初始化输入信号量
     tty->iflags = TTY_INCLR | TTY_IECHO; // 设置输入标志, 开启输入回显
     tty->oflags = TTY_OCRLF; // 设置输出标志, 开启回车换行
     tty->console_idx = idx; // 记录当前控制台设备索引
