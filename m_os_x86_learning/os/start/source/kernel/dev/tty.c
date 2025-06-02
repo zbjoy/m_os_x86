@@ -62,6 +62,8 @@ int tty_open(device_t* dev) {
     tty_fifo_init(&tty->ofifo, tty->obuf, TTY_OBUF_SIZE); // 初始化输出缓冲区
     sem_init(&tty->osem, TTY_OBUF_SIZE); // 初始化输出信号量
     tty_fifo_init(&tty->ififo, tty->ibuf, TTY_IBUF_SIZE); // 初始化输入缓冲区
+    sem_init(&tty->isem, TTY_IBUF_SIZE); // 初始化输入信号量
+    tty->iflags = TTY_INCLR | TTY_IECHO; // 设置输入标志, 开启输入回显
     tty->oflags = TTY_OCRLF; // 设置输出标志, 开启回车换行
     tty->console_idx = idx; // 记录当前控制台设备索引
 
@@ -70,8 +72,35 @@ int tty_open(device_t* dev) {
     return 0;
 }
 
-int tty_read(device_t* dev, int addr, char* buf, int size) {
-    return size;
+int tty_read(device_t* dev, int addr, char* buf, int size) { // dev: 设备, addr: 地址, buf: 缓冲区, size: 读取大小
+    if (size < 0) {
+        return -1;
+    }
+
+    tty_t* tty = get_tty(dev);
+    char* pbuf = buf;
+    int len = 0;
+    while (len < size) {
+        sem_wait(&tty->isem); // 等待输入信号量, 确保输入缓冲区有数据
+
+        char ch;
+        tty_fifo_get(&tty->ififo, &ch); // 读取输入字符
+        switch (ch) {
+        case '\n':
+            if ((tty->iflags & TTY_INCLR) && (len < size - 1)) {
+                *pbuf++ = '\r'; // 输入回车符
+                len++;
+            }
+            *pbuf++ = '\n'; // 输入换行符
+            len++;
+            break;
+        default:
+            *pbuf++ = ch; // 输入普通字符
+            len++;
+            break;
+        }
+    }
+    return len;
 }
 
 int tty_write(device_t* dev, int addr, char* buf, int size) {
@@ -122,6 +151,17 @@ int tty_control(device_t* dev, int cmd, int arg0, int arg1) {
 
 void tty_close(device_t* dev) {
 
+}
+
+void tty_in(int idx, char ch) {
+    tty_t* tty = tty_devs + idx;
+
+    if (sem_count(&tty->isem) >= TTY_IBUF_SIZE) { // 输入缓冲区已满
+        return;
+    }
+
+    tty_fifo_put(&tty->ififo, ch); // 写入输入字符
+    sem_notify(&tty->isem); // 通知输入信号量
 }
 
 dev_desc_t dev_tty_desc = {

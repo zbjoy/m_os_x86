@@ -129,7 +129,8 @@ static void do_normal_key(uint8_t raw_code) {
                     key = key - 'a' + 'A'; // 转换为大写字母
                 }
             }
-            log_printf("key: %c\n", key);
+            // log_printf("key: %c\n", key);
+            tty_in(0, key); // 将按键输入到 tty 中
         }
         break;
     }
