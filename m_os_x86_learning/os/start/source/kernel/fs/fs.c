@@ -107,6 +107,14 @@ int sys_read(int file, char* ptr, int len) {
         kernel_memcpy(ptr, temp_pos, len); // 复制数据到用户空间
         temp_pos += len; // 更新临时地址指针
         return len; // 返回读取长度
+    } else {
+        file = 0;
+        file_t* p_file = task_file(file);
+        if (!p_file) {
+            log_printf("file not opened");
+            return -1; // 文件未打开
+        }
+        return dev_read(p_file->dev_id, 0, ptr, len); 
     }
     return -1; // 其他文件暂不支持
 }

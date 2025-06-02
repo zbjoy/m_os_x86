@@ -1,6 +1,8 @@
 #include "lib_syscall.h"
 #include <stdio.h>
 
+char cmd_buf[256]; // 命令缓冲区
+
 int main(int argc, char** argv) {
 #if 0
     sbrk(0);
@@ -42,7 +44,10 @@ int main(int argc, char** argv) {
 
 
     for (;;) {
-        printf("shell pid = %d\n", getpid());
-        ms_sleep(1000);
+        gets(cmd_buf);
+        puts(cmd_buf);
+
+        // printf("shell pid = %d\n", getpid());
+        // ms_sleep(1000);
     }
 }
