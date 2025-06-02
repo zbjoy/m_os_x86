@@ -28,7 +28,11 @@ int main(int argc, char** argv) {
     printf("\033[2J\n"); // 清屏
 
 #endif
-    open("tty:0", 0); // 打开终端设备
+    open("tty:0", 0); // 打开终端设备, stdin
+    dup(0); // 复制 stdin 的文件 到 stdout, fd = 0 与 fd = 1 指向文件相同
+    dup(0); // 复制 stdin 的文件 到 stderr, fd = 0 与 fd = 2 指向文件相同
+    // open("tty:0", 0); // stdout
+    // open("tty:0", 0); // stderr
 
     printf("Hello World!!\n");
     printf("Hello From Shell!!\n");

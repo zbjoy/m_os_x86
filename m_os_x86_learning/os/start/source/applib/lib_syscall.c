@@ -153,3 +153,11 @@ void* sbrk(ptrdiff_t incr){
     return (void*)sys_call(&args); // 参数的数量
 }
 
+
+int dup(int file) {
+    syscall_args_t args;
+    args.id = SYS_dup;
+    args.arg0 = (int)file;
+
+    return sys_call(&args); // 参数的数量
+}

@@ -158,6 +158,27 @@ int sys_fstat(int file, struct stat* st) {
     return -1;
 }
 
+int sys_dup(int file) {
+    if ((file < 0) && (file >= TASK_OFILE_NR)) {
+        log_printf("file %d is not valid", file);
+        return -1; // 文件描述符不合法
+    }
+
+    file_t* p_file = task_file(file);
+    if (!p_file) {
+        log_printf("file %d is not opened", file);
+        return -1; // 文件未打开
+    }
+
+    int fd = task_alloc_fd(p_file); // 分配文件描述符
+    if (fd >= 0) {
+        p_file->ref++; // 引用计数加 1
+        return fd; // 返回文件描述符
+    }
+    log_printf("no task file avaliable");
+    return -1; // 打开失败
+}
+
 void fs_init(void) {
     file_table_init(); // 初始化文件表
 }
