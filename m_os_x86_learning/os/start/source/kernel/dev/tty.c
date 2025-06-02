@@ -72,37 +72,6 @@ int tty_open(device_t* dev) {
     return 0;
 }
 
-int tty_read(device_t* dev, int addr, char* buf, int size) { // dev: 设备, addr: 地址, buf: 缓冲区, size: 读取大小
-    if (size < 0) {
-        return -1;
-    }
-
-    tty_t* tty = get_tty(dev);
-    char* pbuf = buf;
-    int len = 0;
-    while (len < size) {
-        sem_wait(&tty->isem); // 等待输入信号量, 确保输入缓冲区有数据
-
-        char ch;
-        tty_fifo_get(&tty->ififo, &ch); // 读取输入字符
-        switch (ch) {
-        case '\n':
-            if ((tty->iflags & TTY_INCLR) && (len < size - 1)) {
-                *pbuf++ = '\r'; // 输入回车符
-                len++;
-            }
-            *pbuf++ = '\n'; // 输入换行符
-            len++;
-            break;
-        default:
-            *pbuf++ = ch; // 输入普通字符
-            len++;
-            break;
-        }
-    }
-    return len;
-}
-
 int tty_write(device_t* dev, int addr, char* buf, int size) {
     if (size < 0) {
         return -1;
@@ -144,6 +113,46 @@ int tty_write(device_t* dev, int addr, char* buf, int size) {
     // return size;
     return len;
 }
+
+int tty_read(device_t* dev, int addr, char* buf, int size) { // dev: 设备, addr: 地址, buf: 缓冲区, size: 读取大小
+    if (size < 0) {
+        return -1;
+    }
+
+    tty_t* tty = get_tty(dev);
+    char* pbuf = buf;
+    int len = 0;
+    while (len < size) {
+        sem_wait(&tty->isem); // 等待输入信号量, 确保输入缓冲区有数据
+
+        char ch;
+        tty_fifo_get(&tty->ififo, &ch); // 读取输入字符
+        switch (ch) {
+        case '\n':
+            if ((tty->iflags & TTY_INCLR) && (len < size - 1)) {
+                *pbuf++ = '\r'; // 输入回车符
+                len++;
+            }
+            *pbuf++ = '\n'; // 输入换行符
+            len++;
+            break;
+        default:
+            *pbuf++ = ch; // 输入普通字符
+            len++;
+            break;
+        }
+
+        if (tty->iflags & TTY_IECHO) { // 如果开启了输入回显
+            tty_write(dev, 0, &ch, 1); // 输出输入字符
+        }
+
+        if ((ch == '\n') || (ch == '\r')) {
+            break;
+        }
+    }
+    return len;
+}
+
 
 int tty_control(device_t* dev, int cmd, int arg0, int arg1) {
     return 0;
