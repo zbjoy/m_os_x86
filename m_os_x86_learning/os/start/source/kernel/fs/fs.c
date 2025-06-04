@@ -157,6 +157,9 @@ int sys_fstat(int file, struct stat* st) {
     return -1;
 }
 
+
+// 复制文件描述符
+// 成功返回文件描述符, 失败返回 -1
 int sys_dup(int file) {
     if ((file < 0) || (file >= TASK_OFILE_NR)) {
         log_printf("file %d is not valid", file);
